@@ -6,11 +6,11 @@
 [![Node.js](https://img.shields.io/badge/Node.js-npm-green.svg)](https://www.npmjs.com/package/fastqr)
 [![PHP](https://img.shields.io/badge/PHP-Composer-blue.svg)](https://packagist.org/packages/fastqr/fastqr)
 
-FastQR is a fast, powerful QR code generator with full UTF-8 support, custom colors, logo embedding, and precise size control. **Pre-built binaries included** - no system dependencies required!
+FastQR is a fast, powerful QR code generator with full UTF-8 support, custom colors, logo embedding, and precise size control. **Pre-built binaries included**!
 
 ## ✨ Features
 
-- 🚀 **High Performance**: No process forking, faster than qrencode
+- 🚀 **High Performance**: No process forking
 - 🌐 **Full UTF-8 Support**: Vietnamese, Japanese (Kanji, Hiragana, Katakana), Chinese, emoji, etc.
 - 🎨 **Custom Colors**: Choose colors for QR code and background
 - 📐 **Exact Size**: Generate QR codes with precise pixel dimensions (e.g., 2000x2000px)
@@ -20,12 +20,25 @@ FastQR is a fast, powerful QR code generator with full UTF-8 support, custom col
 - 💾 **Multiple Formats**: PNG, JPG, WebP
 - ✅ **Pre-built Binaries**: No dependencies needed for gem/npm/composer packages!
 
+## 🎯 Comparison with qrencode
+
+| Feature | FastQR | qrencode |
+|---------|--------|----------|
+| **Speed** | ✅ The same | ✅ The same |
+| **Exact Size** | ✅ 2000x2000px exact | ❌ Scale-based (hard to be exact) |
+| **UTF-8 Support** | ✅ Full | ⚠️ Limited |
+| **Colors** | ✅ RGB customizable | ❌ Black only |
+| **Logo** | ✅ Yes | ❌ No |
+| **Bindings** | ✅ Ruby, Node.js, PHP | ❌ CLI only |
+| **Installation** | ✅ Pre-built binaries | ❌ Requires system deps |
+
 ## 🏗️ Architecture
 
 FastQR is built on:
 
 - **[libqrencode](https://fukuchi.org/works/qrencode/)** (LGPL v2.1) - QR code generation
-- **[libvips](https://libvips.github.io/libvips/)** (LGPL v2.1+) - High-performance image processing
+- **[libpng](http://www.libpng.org/pub/png/libpng.html)** - Fast PNG encoding
+- **[stb_image](https://github.com/nothings/stb)** (Public Domain) - Logo image loading
 
 ## 📦 Installation
 
@@ -68,17 +81,17 @@ composer require fastqr/fastqr
 - macOS (Intel & Apple Silicon)
 - Linux (x86_64 & arm64)
 
-You don't need to install `libqrencode` or `libvips` separately! The binaries are automatically bundled and loaded.
+You don't need to install `libqrencode` or `libpng` separately! The binaries are automatically bundled and loaded.
 
 ### Build from Source
 
 ```bash
 # Install dependencies
 # macOS:
-brew install qrencode vips cmake
+brew install qrencode libpng cmake
 
 # Ubuntu/Debian:
-sudo apt-get install libqrencode-dev libvips-dev cmake build-essential
+sudo apt-get install libqrencode-dev libpng-dev cmake build-essential
 
 # Build
 git clone https://github.com/tranhuucanh/fastqr.git
@@ -100,10 +113,13 @@ See [INSTALL.md](INSTALL.md) for more installation options.
 fastqr "Hello World" output.png
 
 # Custom size
-fastqr -s 500x500 "Large QR" large.png
+fastqr -s 500 "Large QR" large.png
+
+# Optimized size for best performance
+fastqr -s 500 -o "Fast QR" fast.png
 
 # Red QR code
-fastqr -s 400x400 -f 255,0,0 "Red QR" red.png
+fastqr -s 400 -f 255,0,0 "Red QR" red.png
 
 # With logo
 fastqr -l logo.png -p 25 "Company" company_qr.png
@@ -122,7 +138,8 @@ fastqr -e H "Important Data" qr_high_ec.png
 
 ```
 Options:
-  -s, --size WxH          Output size in pixels (default: 300x300)
+  -s, --size SIZE         Output size in pixels (default: 300)
+  -o, --optimize          Auto round-up size for best performance
   -f, --foreground R,G,B  QR code color (default: 0,0,0)
   -b, --background R,G,B  Background color (default: 255,255,255)
   -e, --error-level L|M|Q|H  Error correction level (default: M)
@@ -144,12 +161,14 @@ fastqr::generate("Hello World", "output.png", options);
 
 // Custom
 fastqr::QROptions options;
-options.width = 500;
-options.height = 500;
+options.size = 500;
 options.foreground = {255, 0, 0};  // Red
 options.background = {255, 255, 200};  // Light yellow
 options.ec_level = fastqr::ErrorCorrectionLevel::HIGH;
 fastqr::generate("Custom QR", "custom.png", options);
+
+// Optimized size for best performance
+options.optimize_size = true;
 
 // With logo
 options.logo_path = "logo.png";
@@ -178,17 +197,21 @@ FastQR.generate("Hello World", "output.png")
 
 # Custom
 FastQR.generate("Custom QR", "custom.png",
-  width: 500,
-  height: 500,
+  size: 500,
   foreground: [255, 0, 0],
   background: [255, 255, 200],
   error_level: 'H'
 )
 
+# Optimized size for best performance
+FastQR.generate("Fast QR", "fast.png",
+  size: 500,
+  optimize_size: true
+)
+
 # With logo
 FastQR.generate("Company", "company.png",
-  width: 600,
-  height: 600,
+  size: 600,
   logo: "logo.png",
   logo_size: 25
 )
@@ -215,17 +238,21 @@ fastqr.generate('Hello World', 'output.png');
 
 // Custom
 fastqr.generate('Custom QR', 'custom.png', {
-  width: 500,
-  height: 500,
+  size: 500,
   foreground: [255, 0, 0],
   background: [255, 255, 200],
   errorLevel: 'H'
 });
 
+// Optimized size for best performance
+fastqr.generate('Fast QR', 'fast.png', {
+  size: 500,
+  optimizeSize: true
+});
+
 // With logo
 fastqr.generate('Company', 'company.png', {
-  width: 600,
-  height: 600,
+  size: 600,
   logo: 'logo.png',
   logoSize: 25
 });
@@ -241,8 +268,7 @@ TypeScript:
 import * as fastqr from 'fastqr';
 
 fastqr.generate('Hello TypeScript', 'output.png', {
-  width: 400,
-  height: 400,
+  size: 400,
   foreground: [0, 0, 255]
 });
 ```
@@ -265,17 +291,21 @@ FastQR::generate('Hello World', 'output.png');
 
 // Custom
 FastQR::generate('Custom QR', 'custom.png', [
-    'width' => 500,
-    'height' => 500,
+    'size' => 500,
     'foreground' => [255, 0, 0],
     'background' => [255, 255, 200],
     'errorLevel' => 'H'
 ]);
 
+// Optimized size for best performance
+FastQR::generate('Fast QR', 'fast.png', [
+    'size' => 500,
+    'optimizeSize' => true
+]);
+
 // With logo
 FastQR::generate('Company', 'company.png', [
-    'width' => 600,
-    'height' => 600,
+    'size' => 600,
     'logo' => 'logo.png',
     'logoSize' => 25
 ]);
@@ -301,8 +331,8 @@ Complete usage guides for each platform:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `width` | int | 300 | Output width in pixels |
-| `height` | int | 300 | Output height in pixels |
+| `size` | int | 300 | Output size in pixels (QR codes are square) |
+| `optimizeSize` | bool | false | Auto round-up to nearest integer multiple for best performance |
 | `foreground` | RGB array | [0,0,0] | QR code color |
 | `background` | RGB array | [255,255,255] | Background color |
 | `errorLevel` | string | 'M' | Error correction: L (~7%), M (~15%), Q (~25%), H (~30%) |
@@ -320,18 +350,6 @@ Complete usage guides for each platform:
 
 Higher levels allow QR codes to remain readable when damaged or have logos embedded.
 
-## 🎯 Comparison with qrencode
-
-| Feature | FastQR | qrencode |
-|---------|--------|----------|
-| **Speed** | ✅ Faster (no fork) | ❌ Slow (fork process) |
-| **Exact Size** | ✅ 2000x2000px exact | ❌ Scale-based (hard to be exact) |
-| **UTF-8 Support** | ✅ Full | ⚠️ Limited |
-| **Colors** | ✅ RGB customizable | ❌ Black only |
-| **Logo** | ✅ Yes | ❌ No |
-| **Bindings** | ✅ Ruby, Node.js, PHP | ❌ CLI only |
-| **Installation** | ✅ Pre-built binaries | ❌ Requires system deps |
-
 ## 🔧 Development
 
 ### Build from Source
@@ -341,7 +359,7 @@ git clone https://github.com/tranhuucanh/fastqr.git
 cd fastqr
 
 # Install dependencies
-brew install qrencode vips cmake
+brew install qrencode libpng cmake
 
 # Build
 mkdir build && cd build
@@ -360,7 +378,9 @@ make test
 ```
 fastqr/
 ├── include/           # C++ headers
-│   └── fastqr.h
+│   ├── fastqr.h
+│   ├── stb_image.h
+│   └── stb_image_write.h
 ├── src/              # C++ source
 │   ├── fastqr.cpp
 │   └── cli.cpp
@@ -383,11 +403,12 @@ fastqr/
 
 FastQR is licensed under the **GNU Lesser General Public License v2.1 (LGPL-2.1)**.
 
-This project statically links with:
+This project uses:
 - **libqrencode** (LGPL v2.1) - Copyright (C) 2006-2017 Kentaro Fukuchi
-- **libvips** (LGPL v2.1+) - Copyright (C) 1989-2021 Imperial College, London
+- **libpng** - PNG image encoding
+- **stb_image** (Public Domain) - Sean Barrett's single-header image library
 
-As required by the LGPL, you can obtain the source code and rebuild this library with modified versions of libqrencode and libvips. See [BUILD.md](BUILD.md) for instructions.
+As required by the LGPL, you can obtain the source code and rebuild this library with modified versions of libqrencode. See [BUILD.md](BUILD.md) for instructions.
 
 ### LGPL Requirements
 
@@ -429,16 +450,16 @@ If you find a bug, please open an issue with:
 ## 🙏 Acknowledgments
 
 - [libqrencode](https://fukuchi.org/works/qrencode/) by Kentaro Fukuchi
-- [libvips](https://libvips.github.io/libvips/) by John Cupitt and contributors
+- [libpng](http://www.libpng.org/pub/png/libpng.html) by PNG Development Group
+- [stb libraries](https://github.com/nothings/stb) by Sean Barrett
 
 ## 📊 Benchmarks
 
 ```
-Generating 100 QR codes (500x500px):
-  FastQR:    0.89s
-  qrencode:  2.34s
+Generating 100 QR codes (500x500px):  ~0.3 seconds
+Generating 1000 QR codes (500x500px): ~3 seconds
 
-FastQR is 2.6x faster! 🚀
+Performance tested on modern hardware 🚀
 ```
 
 ## 🗺️ Roadmap

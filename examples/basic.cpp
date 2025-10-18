@@ -11,8 +11,7 @@ int main() {
 
     // Basic usage
     fastqr::QROptions options;
-    options.width = 400;
-    options.height = 400;
+    options.size = 400;
 
     if (fastqr::generate("Hello, FastQR!", "basic_qr.png", options)) {
         std::cout << "✓ Generated basic_qr.png\n";
@@ -46,8 +45,7 @@ int main() {
     }
 
     // Large QR code
-    options.width = 2000;
-    options.height = 2000;
+    options.size = 2000;
     options.ec_level = fastqr::ErrorCorrectionLevel::MEDIUM;
 
     if (fastqr::generate("Large QR Code - 2000x2000px", "large_qr.png", options)) {

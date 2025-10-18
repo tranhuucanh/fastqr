@@ -10,8 +10,8 @@ extern "C" {
 
 // C-compatible options structure
 struct QROptions_C {
-    int width;
-    int height;
+    int size;
+    int optimize_size;
     unsigned char foreground_r;
     unsigned char foreground_g;
     unsigned char foreground_b;
@@ -30,8 +30,8 @@ fastqr::QROptions c_to_cpp_options(const QROptions_C* c_opts) {
     fastqr::QROptions opts;
 
     if (c_opts) {
-        opts.width = c_opts->width;
-        opts.height = c_opts->height;
+        opts.size = c_opts->size;
+        opts.optimize_size = c_opts->optimize_size != 0;
 
         opts.foreground.r = c_opts->foreground_r;
         opts.foreground.g = c_opts->foreground_g;

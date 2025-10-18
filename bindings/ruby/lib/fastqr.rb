@@ -38,8 +38,8 @@ module FastQR
   # @param data [String] Data to encode (UTF-8 supported)
   # @param output_path [String] Path to save the QR code image
   # @param options [Hash] Generation options
-  # @option options [Integer] :width Width in pixels (default: 300)
-  # @option options [Integer] :height Height in pixels (default: 300)
+  # @option options [Integer] :size Size in pixels (default: 300, QR codes are square)
+  # @option options [Boolean] :optimize_size Auto round-up to nearest integer multiple for best performance (default: false)
   # @option options [Array<Integer>] :foreground RGB color array [r, g, b] (default: [0, 0, 0])
   # @option options [Array<Integer>] :background RGB color array [r, g, b] (default: [255, 255, 255])
   # @option options [String] :error_level Error correction level: 'L', 'M', 'Q', 'H' (default: 'M')
@@ -54,8 +54,7 @@ module FastQR
   #
   # @example With options
   #   FastQR.generate("Hello", "qr.png",
-  #     width: 500,
-  #     height: 500,
+  #     size: 500,
   #     foreground: [255, 0, 0],
   #     background: [255, 255, 200],
   #     error_level: 'H'
@@ -63,8 +62,7 @@ module FastQR
   #
   # @example With logo
   #   FastQR.generate("Company", "qr.png",
-  #     width: 600,
-  #     height: 600,
+  #     size: 600,
   #     logo: "logo.png",
   #     logo_size: 25
   #   )

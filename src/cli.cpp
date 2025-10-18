@@ -17,7 +17,8 @@ void print_usage(const char* program_name) {
     std::cout << "FastQR v" << fastqr::version() << " - Fast QR Code Generator\n\n";
     std::cout << "Usage: " << program_name << " [OPTIONS] <data> <output_file>\n\n";
     std::cout << "Options:\n";
-    std::cout << "  -s, --size WxH          Output size in pixels (default: 300x300)\n";
+    std::cout << "  -s, --size SIZE         Output size in pixels (default: 300)\n";
+    std::cout << "  -o, --optimize          Auto round-up size for best performance\n";
     std::cout << "  -f, --foreground R,G,B  QR code color (default: 0,0,0)\n";
     std::cout << "  -b, --background R,G,B  Background color (default: 255,255,255)\n";
     std::cout << "  -e, --error-level L|M|Q|H  Error correction level (default: M)\n";
@@ -28,7 +29,9 @@ void print_usage(const char* program_name) {
     std::cout << "  -v, --version           Show version\n\n";
     std::cout << "Examples:\n";
     std::cout << "  " << program_name << " \"Hello World\" output.png\n";
-    std::cout << "  " << program_name << " -s 500x500 -f 255,0,0 \"Red QR\" red_qr.png\n";
+    std::cout << "  " << program_name << " -s 500 \"Large QR\" large.png\n";
+    std::cout << "  " << program_name << " -s 500 -o \"Optimized\" fast.png\n";
+    std::cout << "  " << program_name << " -s 500 -f 255,0,0 \"Red QR\" red_qr.png\n";
     std::cout << "  " << program_name << " -l logo.png \"Company\" qr_with_logo.png\n";
 }
 
@@ -46,11 +49,11 @@ bool parse_color(const char* str, fastqr::QROptions::Color& color) {
     return true;
 }
 
-bool parse_size(const char* str, int& width, int& height) {
-    if (sscanf(str, "%dx%d", &width, &height) != 2) {
+bool parse_size(const char* str, int& size) {
+    if (sscanf(str, "%d", &size) != 1) {
         return false;
     }
-    if (width <= 0 || height <= 0 || width > 10000 || height > 10000) {
+    if (size <= 0 || size > 10000) {
         return false;
     }
     return true;
@@ -81,10 +84,12 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Error: " << arg << " requires an argument\n";
                 return 1;
             }
-            if (!parse_size(argv[i], options.width, options.height)) {
-                std::cerr << "Error: Invalid size format. Use WxH (e.g., 300x300)\n";
+            if (!parse_size(argv[i], options.size)) {
+                std::cerr << "Error: Invalid size format. Use SIZE (e.g., 500)\n";
                 return 1;
             }
+        } else if (arg == "-o" || arg == "--optimize") {
+            options.optimize_size = true;
         } else if (arg == "-f" || arg == "--foreground") {
             if (++i >= argc) {
                 std::cerr << "Error: " << arg << " requires an argument\n";

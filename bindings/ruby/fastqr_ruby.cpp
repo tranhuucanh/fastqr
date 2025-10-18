@@ -19,12 +19,22 @@ static fastqr::QROptions hash_to_options(VALUE opts) {
 
     VALUE val;
 
-    // Width and height
-    val = rb_hash_aref(opts, ID2SYM(rb_intern("width")));
-    if (!NIL_P(val)) options.width = NUM2INT(val);
+    // Size (preferred) or width/height (backward compatibility)
+    val = rb_hash_aref(opts, ID2SYM(rb_intern("size")));
+    if (!NIL_P(val)) {
+        options.size = NUM2INT(val);
+    } else {
+        // Backward compatibility: if width or height specified, use them
+        val = rb_hash_aref(opts, ID2SYM(rb_intern("width")));
+        if (!NIL_P(val)) options.size = NUM2INT(val);
 
-    val = rb_hash_aref(opts, ID2SYM(rb_intern("height")));
-    if (!NIL_P(val)) options.height = NUM2INT(val);
+        val = rb_hash_aref(opts, ID2SYM(rb_intern("height")));
+        if (!NIL_P(val)) options.size = NUM2INT(val);
+    }
+
+    // Optimize size
+    val = rb_hash_aref(opts, ID2SYM(rb_intern("optimize_size")));
+    if (!NIL_P(val)) options.optimize_size = RTEST(val);
 
     // Foreground color
     val = rb_hash_aref(opts, ID2SYM(rb_intern("foreground")));

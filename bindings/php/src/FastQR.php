@@ -64,8 +64,8 @@ class FastQR
         // Define C interface
         $header = '
             typedef struct {
-                int width;
-                int height;
+                int size;
+                int optimize_size;
                 unsigned char foreground_r;
                 unsigned char foreground_g;
                 unsigned char foreground_b;
@@ -106,8 +106,8 @@ class FastQR
      *
      * // With options
      * FastQR::generate('Hello', 'qr.png', [
-     *     'width' => 500,
-     *     'height' => 500,
+     *     'size' => 500,
+     *     'optimizeSize' => true,
      *     'foreground' => [255, 0, 0],
      *     'background' => [255, 255, 200],
      *     'errorLevel' => 'H'
@@ -115,8 +115,7 @@ class FastQR
      *
      * // With logo
      * FastQR::generate('Company', 'qr.png', [
-     *     'width' => 600,
-     *     'height' => 600,
+     *     'size' => 600,
      *     'logo' => 'logo.png',
      *     'logoSize' => 25
      * ]);
@@ -139,8 +138,18 @@ class FastQR
 
         // Create options struct
         $opts = self::$ffi->new('QROptions');
-        $opts->width = $options['width'] ?? 300;
-        $opts->height = $options['height'] ?? 300;
+
+        // Size (preferred) or width/height (backward compatibility)
+        if (isset($options['size'])) {
+            $opts->size = $options['size'];
+        } elseif (isset($options['width']) || isset($options['height'])) {
+            $opts->size = $options['width'] ?? $options['height'] ?? 300;
+        } else {
+            $opts->size = 300;
+        }
+
+        // Optimize size
+        $opts->optimize_size = $options['optimizeSize'] ?? false ? 1 : 0;
 
         // Foreground color
         $fg = $options['foreground'] ?? [0, 0, 0];

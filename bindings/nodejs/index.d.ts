@@ -9,10 +9,16 @@ export interface Color {
 }
 
 export interface QROptions {
-    /** Output width in pixels (default: 300) */
+    /** Output size in pixels (default: 300, QR codes are square) */
+    size?: number;
+
+    /** Auto round-up to nearest integer multiple for best performance (default: false) */
+    optimizeSize?: boolean;
+
+    /** @deprecated Use size instead */
     width?: number;
 
-    /** Output height in pixels (default: 300) */
+    /** @deprecated Use size instead */
     height?: number;
 
     /** QR code color as [R, G, B] (default: [0, 0, 0]) */
@@ -53,8 +59,8 @@ export interface QROptions {
  *
  * // With options
  * fastqr.generate('Hello', 'qr.png', {
- *   width: 500,
- *   height: 500,
+ *   size: 500,
+ *   optimizeSize: true,
  *   foreground: [255, 0, 0],
  *   background: [255, 255, 200],
  *   errorLevel: 'H'

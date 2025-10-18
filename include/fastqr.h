@@ -35,9 +35,11 @@ enum class ErrorCorrectionLevel {
  * Options for QR code generation
  */
 struct QROptions {
-    // Output image dimensions
-    int width = 300;
-    int height = 300;
+    // Output image size (QR codes are square)
+    int size = 300;
+
+    // Optimize size - round up to nearest integer multiple for best performance
+    bool optimize_size = false;
 
     // QR code colors (RGB)
     struct Color {

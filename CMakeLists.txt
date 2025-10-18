@@ -5,6 +5,14 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Optimization flags for maximum performance
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DNDEBUG -march=native -flto")
+set(CMAKE_C_FLAGS_RELEASE "-Ofast -DNDEBUG -march=native -flto")
+
 # Options
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(FASTQR_BUILD_EXAMPLES "Build examples" ON)
@@ -12,16 +20,13 @@ option(FASTQR_BUILD_BINDINGS "Build language bindings" ON)
 
 # Find dependencies
 find_package(PkgConfig REQUIRED)
+find_package(PNG REQUIRED)
 
 # Find libqrencode
 pkg_check_modules(QRENCODE REQUIRED libqrencode)
 
-# Find libvips
-pkg_check_modules(VIPS REQUIRED vips)
-
 # Add library directories
 link_directories(${QRENCODE_LIBRARY_DIRS})
-link_directories(${VIPS_LIBRARY_DIRS})
 
 # Main library
 add_library(fastqr
@@ -34,25 +39,23 @@ target_include_directories(fastqr
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${QRENCODE_INCLUDE_DIRS}
-        ${VIPS_INCLUDE_DIRS}
+        ${PNG_INCLUDE_DIRS}
 )
 
 target_link_directories(fastqr
     PRIVATE
         ${QRENCODE_LIBRARY_DIRS}
-        ${VIPS_LIBRARY_DIRS}
 )
 
 target_link_libraries(fastqr
     PRIVATE
         ${QRENCODE_LIBRARIES}
-        ${VIPS_LIBRARIES}
+        PNG::PNG
 )
 
 target_compile_options(fastqr
     PRIVATE
         ${QRENCODE_CFLAGS_OTHER}
-        ${VIPS_CFLAGS_OTHER}
 )
 
 # Set library output name

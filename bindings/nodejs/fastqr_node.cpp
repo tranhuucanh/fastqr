@@ -10,11 +10,21 @@
 fastqr::QROptions js_to_options(const Napi::Object& obj) {
     fastqr::QROptions options;
 
-    if (obj.Has("width")) {
-        options.width = obj.Get("width").As<Napi::Number>().Int32Value();
+    // Size (preferred) or width/height (backward compatibility)
+    if (obj.Has("size")) {
+        options.size = obj.Get("size").As<Napi::Number>().Int32Value();
+    } else {
+        if (obj.Has("width")) {
+            options.size = obj.Get("width").As<Napi::Number>().Int32Value();
+        }
+        if (obj.Has("height")) {
+            options.size = obj.Get("height").As<Napi::Number>().Int32Value();
+        }
     }
-    if (obj.Has("height")) {
-        options.height = obj.Get("height").As<Napi::Number>().Int32Value();
+
+    // Optimize size
+    if (obj.Has("optimizeSize")) {
+        options.optimize_size = obj.Get("optimizeSize").As<Napi::Boolean>().Value();
     }
 
     // Foreground color
