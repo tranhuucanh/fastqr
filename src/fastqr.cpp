@@ -103,8 +103,8 @@ static VipsImage* qr_to_vips_image(const QRcode* qr, const QROptions& options) {
         }
     }
 
-    // Create VipsImage from buffer
-    VipsImage* image = vips_image_new_from_memory(
+    // Create VipsImage from buffer (copy data to avoid memory issues)
+    VipsImage* image = vips_image_new_from_memory_copy(
         rgb_data.data(),
         rgb_data.size(),
         qr_size,
