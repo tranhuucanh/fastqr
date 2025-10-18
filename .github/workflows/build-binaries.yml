@@ -11,15 +11,20 @@ jobs:
     runs-on: macos-14  # M1 runner
     steps:
       - uses: actions/checkout@v3
-
+      
       - name: Install dependencies
         run: |
-          brew install cmake qrencode vips pkg-config
-
+          brew install cmake qrencode vips pkg-config || true
+          # Verify installations
+          which cmake
+          which pkg-config
+          pkg-config --modversion libqrencode || echo "qrencode not found"
+          pkg-config --modversion vips || echo "vips not found"
+      
       - name: Build binary
         run: |
           chmod +x scripts/build-binaries.sh
-          ./scripts/build-binaries.sh
+          ./scripts/build-binaries.sh || { echo "Build failed"; cat build.log 2>/dev/null || true; exit 1; }
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -31,15 +36,20 @@ jobs:
     runs-on: macos-13  # Intel runner
     steps:
       - uses: actions/checkout@v3
-
+      
       - name: Install dependencies
         run: |
-          brew install cmake qrencode vips pkg-config
-
+          brew install cmake qrencode vips pkg-config || true
+          # Verify installations
+          which cmake
+          which pkg-config
+          pkg-config --modversion libqrencode || echo "qrencode not found"
+          pkg-config --modversion vips || echo "vips not found"
+      
       - name: Build binary
         run: |
           chmod +x scripts/build-binaries.sh
-          ./scripts/build-binaries.sh
+          ./scripts/build-binaries.sh || { echo "Build failed"; cat build.log 2>/dev/null || true; exit 1; }
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -163,7 +173,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Download binaries
         uses: actions/download-artifact@v4
         with:
@@ -204,7 +214,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Download binaries
         uses: actions/download-artifact@v4
         with:
@@ -245,7 +255,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Download binaries
         uses: actions/download-artifact@v4
         with:
