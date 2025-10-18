@@ -1,0 +1,69 @@
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fastqr repo
+        uses: actions/checkout@v3
+        with:
+          repository: tranhuucanh/fastqr
+          
+      - name: Get release info
+        id: release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+      - name: Download and hash ARM64
+        id: arm64
+        run: |
+          curl -L -o arm64.tar.gz "https://github.com/tranhuucanh/fastqr/releases/download/v${{ steps.release.outputs.version }}/fastqr-${{ steps.release.outputs.version }}-macos-arm64.tar.gz"
+          SHA256=$(shasum -a 256 arm64.tar.gz | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          
+      - name: Download and hash x86_64
+        id: x86_64
+        run: |
+          curl -L -o x86_64.tar.gz "https://github.com/tranhuucanh/fastqr/releases/download/v${{ steps.release.outputs.version }}/fastqr-${{ steps.release.outputs.version }}-macos-x86_64.tar.gz"
+          SHA256=$(shasum -a 256 x86_64.tar.gz | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          
+      - name: Checkout homebrew-fastqr repo
+        uses: actions/checkout@v3
+        with:
+          repository: tranhuucanh/homebrew-fastqr
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: homebrew-fastqr
+          
+      - name: Update formula
+        run: |
+          cd homebrew-fastqr
+          VERSION="${{ steps.release.outputs.version }}"
+          ARM64_SHA="${{ steps.arm64.outputs.sha256 }}"
+          X86_64_SHA="${{ steps.x86_64.outputs.sha256 }}"
+          
+          # Update Formula/fastqr.rb
+          sed -i "s/version \".*\"/version \"$VERSION\"/" Formula/fastqr.rb
+          sed -i "s|fastqr-[0-9.]*-macos-arm64.tar.gz|fastqr-$VERSION-macos-arm64.tar.gz|g" Formula/fastqr.rb
+          sed -i "s|fastqr-[0-9.]*-macos-x86_64.tar.gz|fastqr-$VERSION-macos-x86_64.tar.gz|g" Formula/fastqr.rb
+          
+          # Update SHA256 for ARM64 (line after arm64 url)
+          awk -v sha="$ARM64_SHA" '/on_arm/,/sha256/ {if (/sha256/) {sub(/sha256 ".*"/, "sha256 \"" sha "\"")}} 1' Formula/fastqr.rb > tmp && mv tmp Formula/fastqr.rb
+          
+          # Update SHA256 for x86_64 (line after intel url)
+          awk -v sha="$X86_64_SHA" '/on_intel/,/sha256/ {if (/sha256/) {sub(/sha256 ".*"/, "sha256 \"" sha "\"")}} 1' Formula/fastqr.rb > tmp && mv tmp Formula/fastqr.rb
+          
+      - name: Commit and push
+        run: |
+          cd homebrew-fastqr
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Formula/fastqr.rb
+          git commit -m "Update to v${{ steps.release.outputs.version }}"
+          git push
+

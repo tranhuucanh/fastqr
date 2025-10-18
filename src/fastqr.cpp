@@ -164,13 +164,31 @@ static VipsImage* add_logo(VipsImage* qr_image, const std::string& logo_path, in
     }
     g_object_unref(logo);
 
-    // Convert logo to RGB if needed
+    // Convert logo to RGB (flatten alpha if present)
     VipsImage* logo_rgb = nullptr;
-    if (vips_colourspace(logo_resized, &logo_rgb, VIPS_INTERPRETATION_sRGB, NULL)) {
+    
+    // If logo has alpha channel, flatten it first
+    if (logo_resized->Bands == 4) {
+        // Flatten alpha channel with white background
+        VipsImage* flattened = nullptr;
+        double background[3] = {255, 255, 255};
+        if (vips_flatten(logo_resized, &flattened, "background", background, NULL)) {
+            g_object_unref(logo_resized);
+            return qr_image;
+        }
         g_object_unref(logo_resized);
-        return qr_image;
+        logo_rgb = flattened;
+    } else if (logo_resized->Bands == 1) {
+        // Convert grayscale to RGB
+        if (vips_colourspace(logo_resized, &logo_rgb, VIPS_INTERPRETATION_sRGB, NULL)) {
+            g_object_unref(logo_resized);
+            return qr_image;
+        }
+        g_object_unref(logo_resized);
+    } else {
+        // Already RGB, use as-is
+        logo_rgb = logo_resized;
     }
-    g_object_unref(logo_resized);
 
     // Calculate position (center)
     int x = (qr_width - logo_rgb->Xsize) / 2;
