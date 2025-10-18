@@ -166,7 +166,7 @@ static VipsImage* add_logo(VipsImage* qr_image, const std::string& logo_path, in
 
     // Convert logo to RGB (flatten alpha if present)
     VipsImage* logo_rgb = nullptr;
-    
+
     // If logo has alpha channel, flatten it first
     if (logo_resized->Bands == 4) {
         // Flatten alpha channel with white background
