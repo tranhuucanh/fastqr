@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::cout << "QR code generated successfully: " << output_path << std::endl;
+    // Success - no output for performance
     return 0;
 }
 

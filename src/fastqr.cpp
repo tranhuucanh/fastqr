@@ -118,21 +118,19 @@ static VipsImage* qr_to_vips_image(const QRcode* qr, const QROptions& options) {
         return nullptr;
     }
 
-    // Make a copy since we're using stack memory
-    VipsImage* copy = vips_image_copy_memory(image);
-    g_object_unref(image);
-
-    return copy;
+    // No need for additional copy - vips_image_new_from_memory_copy already copied
+    return image;
 }
 
-// Resize image to exact dimensions
+// Resize image to exact dimensions (optimized for speed)
 static VipsImage* resize_image(VipsImage* in, int target_width, int target_height) {
     VipsImage* out = nullptr;
 
     double h_scale = static_cast<double>(target_width) / in->Xsize;
     double v_scale = static_cast<double>(target_height) / in->Ysize;
 
-    if (vips_resize(in, &out, h_scale, "vscale", v_scale, "kernel", VIPS_KERNEL_NEAREST, NULL)) {
+    // Use affine with nearest interpolation for fastest scaling
+    if (vips_affine(in, &out, h_scale, 0, 0, v_scale, "interpolate", vips_interpolate_nearest_static(), NULL)) {
         std::cerr << "Failed to resize image: " << vips_error_buffer() << std::endl;
         return nullptr;
     }
