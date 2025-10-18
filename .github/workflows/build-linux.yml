@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-linux-x86_64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
 
@@ -32,7 +32,7 @@ jobs:
           path: prebuilt/*.tar.gz
 
   build-linux-arm64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
 
@@ -44,7 +44,7 @@ jobs:
           docker run --rm --platform linux/arm64 \
             -v $PWD:/workspace \
             -w /workspace \
-            arm64v8/ubuntu:20.04 \
+            arm64v8/ubuntu:22.04 \
             bash -c "
               apt-get update && \
               apt-get install -y cmake libqrencode-dev libvips-dev pkg-config build-essential && \
