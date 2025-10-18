@@ -69,6 +69,10 @@ jobs:
           cd homebrew-fastqr
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          
+          # Configure git to use token for authentication
+          git remote set-url origin https://x-access-token:${{ secrets.HOMEBREW_TAP_TOKEN }}@github.com/tranhuucanh/homebrew-fastqr.git
+          
           git add Formula/fastqr.rb
           git commit -m "Update to v${{ steps.release.outputs.version }}"
           git push
