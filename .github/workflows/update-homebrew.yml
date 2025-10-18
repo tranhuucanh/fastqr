@@ -1,22 +1,28 @@
 name: Update Homebrew Formula
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ["Build macOS Binaries"]
+    types:
+      - completed
 
 jobs:
   update-formula:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'refs/tags/v') }}
     steps:
       - name: Checkout fastqr repo
         uses: actions/checkout@v3
         with:
           repository: tranhuucanh/fastqr
-
+          ref: ${{ github.event.workflow_run.head_branch }}
+          
       - name: Get release info
         id: release
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
+          # Get version from tag
+          git fetch --tags
+          VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Download and hash ARM64

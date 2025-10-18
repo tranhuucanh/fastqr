@@ -99,19 +99,27 @@ jobs:
           mkdir -p bindings/nodejs/prebuilt
           mkdir -p bindings/php/prebuilt
 
-          # Extract tarballs
+          # Extract tarballs to /tmp
           for arch_dir in artifacts/*/; do
             for tarball in $arch_dir/*.tar.gz; do
+              echo "Extracting $tarball..."
               tar xzf $tarball -C /tmp/
             done
           done
 
-          # Copy to binding directories
-          for platform_dir in /tmp/prebuilt/*/; do
-            platform=$(basename $platform_dir)
-            cp -r $platform_dir bindings/ruby/prebuilt/$platform/
-            cp -r $platform_dir bindings/nodejs/prebuilt/$platform/
-            cp -r $platform_dir bindings/php/prebuilt/$platform/
+          # List extracted files
+          echo "Extracted files:"
+          ls -la /tmp/
+
+          # Copy platform directories to binding directories
+          for platform_dir in /tmp/linux-*/; do
+            if [ -d "$platform_dir" ]; then
+              platform=$(basename $platform_dir)
+              echo "Copying $platform..."
+              cp -r $platform_dir bindings/ruby/prebuilt/$platform/
+              cp -r $platform_dir bindings/nodejs/prebuilt/$platform/
+              cp -r $platform_dir bindings/php/prebuilt/$platform/
+            fi
           done
 
           # List what we have
