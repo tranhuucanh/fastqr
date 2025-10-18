@@ -65,11 +65,19 @@ if [[ "$OS" == "macos" ]]; then
     cp build/staging/usr/local/bin/fastqr "$OUTPUT_DIR/bin/fastqr" 2>/dev/null || \
     cp build/fastqr "$OUTPUT_DIR/bin/fastqr"
 else
-    cp build/staging/usr/local/lib/libfastqr.so* "$OUTPUT_DIR/lib/libfastqr.so" 2>/dev/null || \
-    cp build/libfastqr.so* "$OUTPUT_DIR/lib/libfastqr.so"
+    # Copy all .so files to lib directory
+    if [ -f build/staging/usr/local/lib/libfastqr.so ]; then
+        cp build/staging/usr/local/lib/libfastqr.so* "$OUTPUT_DIR/lib/"
+    else
+        cp build/libfastqr.so* "$OUTPUT_DIR/lib/"
+    fi
 
-    cp build/staging/usr/local/bin/fastqr "$OUTPUT_DIR/bin/fastqr" 2>/dev/null || \
-    cp build/fastqr "$OUTPUT_DIR/bin/fastqr"
+    # Copy binary
+    if [ -f build/staging/usr/local/bin/fastqr ]; then
+        cp build/staging/usr/local/bin/fastqr "$OUTPUT_DIR/bin/fastqr"
+    else
+        cp build/fastqr "$OUTPUT_DIR/bin/fastqr"
+    fi
 fi
 
 # Copy headers
