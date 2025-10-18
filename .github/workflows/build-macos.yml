@@ -1,0 +1,83 @@
+name: Build macOS Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-macos-arm64:
+    runs-on: macos-14  # M1 runner
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install cmake qrencode vips pkg-config || true
+          # Verify installations
+          which cmake
+          which pkg-config
+          pkg-config --modversion libqrencode || echo "qrencode not found"
+          pkg-config --modversion vips || echo "vips not found"
+
+      - name: Build binary
+        run: |
+          chmod +x scripts/build-binaries.sh
+          ./scripts/build-binaries.sh || { echo "Build failed"; cat build.log 2>/dev/null || true; exit 1; }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64
+          path: prebuilt/*.tar.gz
+
+  build-macos-x86_64:
+    runs-on: macos-13  # Intel runner
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install cmake qrencode vips pkg-config || true
+          # Verify installations
+          which cmake
+          which pkg-config
+          pkg-config --modversion libqrencode || echo "qrencode not found"
+          pkg-config --modversion vips || echo "vips not found"
+
+      - name: Build binary
+        run: |
+          chmod +x scripts/build-binaries.sh
+          ./scripts/build-binaries.sh || { echo "Build failed"; cat build.log 2>/dev/null || true; exit 1; }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-x86_64
+          path: prebuilt/*.tar.gz
+
+  create-release:
+    needs: [build-macos-arm64, build-macos-x86_64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          ls -R artifacts/
+
+      - name: Upload to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

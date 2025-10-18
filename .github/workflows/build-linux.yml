@@ -1,0 +1,134 @@
+name: Build Linux Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-linux-x86_64:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libqrencode-dev libvips-dev pkg-config build-essential
+
+      - name: Build binary
+        run: |
+          chmod +x scripts/build-binaries.sh
+          ./scripts/build-binaries.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64
+          path: prebuilt/*.tar.gz
+
+  build-linux-arm64:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Build in ARM64 container
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v $PWD:/workspace \
+            -w /workspace \
+            arm64v8/ubuntu:20.04 \
+            bash -c "
+              apt-get update && \
+              apt-get install -y cmake libqrencode-dev libvips-dev pkg-config build-essential && \
+              chmod +x scripts/build-binaries.sh && \
+              ./scripts/build-binaries.sh
+            "
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64
+          path: prebuilt/*.tar.gz
+
+  create-release:
+    needs: [build-linux-x86_64, build-linux-arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          ls -R artifacts/
+
+      - name: Upload to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  package-bindings:
+    needs: [build-linux-x86_64, build-linux-arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Organize binaries for language bindings
+        run: |
+          mkdir -p bindings/ruby/prebuilt
+          mkdir -p bindings/nodejs/prebuilt
+          mkdir -p bindings/php/prebuilt
+
+          # Extract tarballs
+          for arch_dir in artifacts/*/; do
+            for tarball in $arch_dir/*.tar.gz; do
+              tar xzf $tarball -C /tmp/
+            done
+          done
+
+          # Copy to binding directories
+          for platform_dir in /tmp/prebuilt/*/; do
+            platform=$(basename $platform_dir)
+            cp -r $platform_dir bindings/ruby/prebuilt/$platform/
+            cp -r $platform_dir bindings/nodejs/prebuilt/$platform/
+            cp -r $platform_dir bindings/php/prebuilt/$platform/
+          done
+
+          # List what we have
+          echo "Ruby binaries:"
+          ls -R bindings/ruby/prebuilt/
+          echo "Node.js binaries:"
+          ls -R bindings/nodejs/prebuilt/
+          echo "PHP binaries:"
+          ls -R bindings/php/prebuilt/
+
+      - name: Create combined archive
+        run: |
+          tar czf fastqr-binaries-linux.tar.gz \
+            bindings/ruby/prebuilt \
+            bindings/nodejs/prebuilt \
+            bindings/php/prebuilt
+
+      - name: Upload combined artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binaries
+          path: fastqr-binaries-linux.tar.gz
+
