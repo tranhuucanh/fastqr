@@ -55,8 +55,10 @@ jobs:
 
           # Update Formula/fastqr.rb
           sed -i "s/version \".*\"/version \"$VERSION\"/" Formula/fastqr.rb
-          sed -i "s|fastqr-[0-9.]*-macos-arm64.tar.gz|fastqr-$VERSION-macos-arm64.tar.gz|g" Formula/fastqr.rb
-          sed -i "s|fastqr-[0-9.]*-macos-x86_64.tar.gz|fastqr-$VERSION-macos-x86_64.tar.gz|g" Formula/fastqr.rb
+          
+          # Update URLs with version tag (v1.0.x) and filename
+          sed -i "s|download/v[0-9.]*/fastqr-[0-9.]*-macos-arm64.tar.gz|download/v$VERSION/fastqr-$VERSION-macos-arm64.tar.gz|g" Formula/fastqr.rb
+          sed -i "s|download/v[0-9.]*/fastqr-[0-9.]*-macos-x86_64.tar.gz|download/v$VERSION/fastqr-$VERSION-macos-x86_64.tar.gz|g" Formula/fastqr.rb
 
           # Update SHA256 for ARM64 (line after arm64 url)
           awk -v sha="$ARM64_SHA" '/on_arm/,/sha256/ {if (/sha256/) {sub(/sha256 ".*"/, "sha256 \"" sha "\"")}} 1' Formula/fastqr.rb > tmp && mv tmp Formula/fastqr.rb
@@ -69,10 +71,10 @@ jobs:
           cd homebrew-fastqr
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          
+
           # Configure git to use token for authentication
           git remote set-url origin https://x-access-token:${{ secrets.HOMEBREW_TAP_TOKEN }}@github.com/tranhuucanh/homebrew-fastqr.git
-          
+
           git add Formula/fastqr.rb
           git commit -m "Update to v${{ steps.release.outputs.version }}"
           git push
