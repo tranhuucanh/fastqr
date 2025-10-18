@@ -1,0 +1,36 @@
+{
+    "name": "fastqr/fastqr",
+    "description": "Fast QR code generator with UTF-8 support, custom colors, logo embedding, and precise size control",
+    "type": "library",
+    "keywords": ["qr", "qrcode", "qr-code", "generator", "utf8", "unicode", "vietnamese", "japanese", "fast"],
+    "homepage": "https://github.com/tranhuucanh/fastqr",
+    "license": "LGPL-2.1",
+    "authors": [
+        {
+            "name": "FastQR Project",
+            "email": "fastqr@example.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-ffi": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "FastQR\\": "bindings/php/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FastQR\\Tests\\": "bindings/php/tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "minimum-stability": "stable"
+}
+

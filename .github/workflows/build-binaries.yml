@@ -1,0 +1,265 @@
+name: Build Pre-compiled Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-macos-arm64:
+    runs-on: macos-14  # M1 runner
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install cmake qrencode vips pkg-config
+
+      - name: Build binary
+        run: |
+          chmod +x scripts/build-binaries.sh
+          ./scripts/build-binaries.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-arm64
+          path: prebuilt/*.tar.gz
+
+  build-macos-x86_64:
+    runs-on: macos-13  # Intel runner
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install cmake qrencode vips pkg-config
+
+      - name: Build binary
+        run: |
+          chmod +x scripts/build-binaries.sh
+          ./scripts/build-binaries.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-x86_64
+          path: prebuilt/*.tar.gz
+
+  build-linux-x86_64:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libqrencode-dev libvips-dev pkg-config build-essential
+
+      - name: Build binary
+        run: |
+          chmod +x scripts/build-binaries.sh
+          ./scripts/build-binaries.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-x86_64
+          path: prebuilt/*.tar.gz
+
+  build-linux-arm64:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Build in ARM64 container
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v $PWD:/workspace \
+            -w /workspace \
+            arm64v8/ubuntu:20.04 \
+            bash -c "
+              apt-get update && \
+              apt-get install -y cmake libqrencode-dev libvips-dev pkg-config build-essential && \
+              chmod +x scripts/build-binaries.sh && \
+              ./scripts/build-binaries.sh
+            "
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-arm64
+          path: prebuilt/*.tar.gz
+
+  package-binaries:
+    needs: [build-macos-arm64, build-macos-x86_64, build-linux-x86_64, build-linux-arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Organize binaries
+        run: |
+          mkdir -p bindings/ruby/prebuilt
+          mkdir -p bindings/nodejs/prebuilt
+          mkdir -p bindings/php/prebuilt
+
+          # Extract tarballs
+          for arch_dir in artifacts/*/; do
+            for tarball in $arch_dir/*.tar.gz; do
+              tar xzf $tarball -C /tmp/
+            done
+          done
+
+          # Copy to binding directories
+          for platform_dir in /tmp/prebuilt/*/; do
+            platform=$(basename $platform_dir)
+            cp -r $platform_dir bindings/ruby/prebuilt/$platform/
+            cp -r $platform_dir bindings/nodejs/prebuilt/$platform/
+            cp -r $platform_dir bindings/php/prebuilt/$platform/
+          done
+
+          # List what we have
+          echo "Ruby binaries:"
+          ls -R bindings/ruby/prebuilt/
+          echo "Node.js binaries:"
+          ls -R bindings/nodejs/prebuilt/
+          echo "PHP binaries:"
+          ls -R bindings/php/prebuilt/
+
+      - name: Create combined archive
+        run: |
+          tar czf fastqr-binaries-all.tar.gz \
+            bindings/ruby/prebuilt \
+            bindings/nodejs/prebuilt \
+            bindings/php/prebuilt
+
+      - name: Upload combined artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: all-binaries
+          path: fastqr-binaries-all.tar.gz
+
+      - name: Upload to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            fastqr-binaries-all.tar.gz
+            artifacts/*/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-ruby-gem:
+    needs: package-binaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download binaries
+        uses: actions/download-artifact@v3
+        with:
+          name: all-binaries
+
+      - name: Extract binaries
+        run: |
+          tar xzf fastqr-binaries-all.tar.gz
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+
+      - name: Build gem
+        run: |
+          gem build fastqr.gemspec
+
+      - name: Upload gem
+        uses: actions/upload-artifact@v3
+        with:
+          name: ruby-gem
+          path: '*.gem'
+
+      - name: Publish to RubyGems
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+          gem push *.gem
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+
+  build-npm-package:
+    needs: package-binaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download binaries
+        uses: actions/download-artifact@v3
+        with:
+          name: all-binaries
+
+      - name: Extract binaries
+        run: |
+          tar xzf fastqr-binaries-all.tar.gz
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Package npm
+        run: |
+          cd bindings/nodejs
+          npm pack
+
+      - name: Upload package
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-package
+          path: 'bindings/nodejs/*.tgz'
+
+      - name: Publish to npm
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd bindings/nodejs
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  update-composer-package:
+    needs: package-binaries
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download binaries
+        uses: actions/download-artifact@v3
+        with:
+          name: all-binaries
+
+      - name: Extract binaries
+        run: |
+          tar xzf fastqr-binaries-all.tar.gz
+
+      - name: Commit and push binaries
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add bindings/php/prebuilt
+          git commit -m "Add pre-built binaries for $(git describe --tags)"
+          git push
+

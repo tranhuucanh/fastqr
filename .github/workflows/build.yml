@@ -1,0 +1,120 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        brew install cmake qrencode vips pkg-config
+
+    - name: Build
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(sysctl -n hw.ncpu)
+
+    - name: Test
+      run: |
+        cd build
+        ctest --output-on-failure
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake libqrencode-dev libvips-dev pkg-config
+
+    - name: Build
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+
+    - name: Test
+      run: |
+        cd build
+        ctest --output-on-failure
+
+  ruby-gem:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.0'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libqrencode-dev libvips-dev
+        gem install bundler
+
+    - name: Build gem
+      run: gem build fastqr.gemspec
+
+  nodejs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libqrencode-dev libvips-dev
+
+    - name: Build and test
+      run: |
+        cd bindings/nodejs
+        npm install
+        npm run install
+        npm test
+
+  php:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
+        extensions: ffi
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libqrencode-dev libvips-dev cmake
+
+    - name: Build C++ library
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make
+        sudo make install
+
+    - name: Test PHP
+      run: |
+        cd bindings/php
+        composer install
+        vendor/bin/phpunit
+

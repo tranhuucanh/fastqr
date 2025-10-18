@@ -1,0 +1,45 @@
+{
+  "name": "fastqr",
+  "version": "1.0.0",
+  "description": "Fast QR code generator with UTF-8 support, custom colors, logo embedding, and precise size control",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "install": "node-gyp rebuild",
+    "test": "node test/test.js"
+  },
+  "keywords": [
+    "qr",
+    "qrcode",
+    "qr-code",
+    "generator",
+    "utf8",
+    "unicode",
+    "vietnamese",
+    "japanese",
+    "fast",
+    "vips",
+    "image"
+  ],
+  "author": "FastQR Project",
+  "license": "LGPL-2.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tranhuucanh/fastqr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tranhuucanh/fastqr/issues"
+  },
+  "homepage": "https://github.com/tranhuucanh/fastqr#readme",
+  "dependencies": {
+    "node-gyp": "^9.0.0",
+    "ffi-napi": "^4.0.3",
+    "ref-napi": "^3.0.3"
+  },
+  "devDependencies": {},
+  "gypfile": true,
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
+

@@ -1,0 +1,85 @@
+/*
+ * FastQR PHP C Wrapper
+ * Copyright (C) 2025 FastQR Project
+ */
+
+#include "fastqr.h"
+#include <cstring>
+
+extern "C" {
+
+// C-compatible options structure
+struct QROptions_C {
+    int width;
+    int height;
+    unsigned char foreground_r;
+    unsigned char foreground_g;
+    unsigned char foreground_b;
+    unsigned char background_r;
+    unsigned char background_g;
+    unsigned char background_b;
+    int ec_level;  // 0=L, 1=M, 2=Q, 3=H
+    const char* logo_path;
+    int logo_size_percent;
+    const char* format;
+    int quality;
+};
+
+// Convert C struct to C++ options
+fastqr::QROptions c_to_cpp_options(const QROptions_C* c_opts) {
+    fastqr::QROptions opts;
+
+    if (c_opts) {
+        opts.width = c_opts->width;
+        opts.height = c_opts->height;
+
+        opts.foreground.r = c_opts->foreground_r;
+        opts.foreground.g = c_opts->foreground_g;
+        opts.foreground.b = c_opts->foreground_b;
+
+        opts.background.r = c_opts->background_r;
+        opts.background.g = c_opts->background_g;
+        opts.background.b = c_opts->background_b;
+
+        switch (c_opts->ec_level) {
+            case 0: opts.ec_level = fastqr::ErrorCorrectionLevel::LOW; break;
+            case 1: opts.ec_level = fastqr::ErrorCorrectionLevel::MEDIUM; break;
+            case 2: opts.ec_level = fastqr::ErrorCorrectionLevel::QUARTILE; break;
+            case 3: opts.ec_level = fastqr::ErrorCorrectionLevel::HIGH; break;
+            default: opts.ec_level = fastqr::ErrorCorrectionLevel::MEDIUM; break;
+        }
+
+        if (c_opts->logo_path) {
+            opts.logo_path = c_opts->logo_path;
+        }
+        opts.logo_size_percent = c_opts->logo_size_percent;
+
+        if (c_opts->format) {
+            opts.format = c_opts->format;
+        }
+        opts.quality = c_opts->quality;
+    }
+
+    return opts;
+}
+
+// C-compatible generate function
+bool fastqr_generate(const char* data, const char* output_path, QROptions_C* options) {
+    if (!data || !output_path) {
+        return false;
+    }
+
+    std::string data_str(data);
+    std::string output_str(output_path);
+    fastqr::QROptions opts = c_to_cpp_options(options);
+
+    return fastqr::generate(data_str, output_str, opts);
+}
+
+// C-compatible version function
+const char* fastqr_version(void) {
+    return fastqr::version();
+}
+
+} // extern "C"
+
