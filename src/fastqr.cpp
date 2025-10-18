@@ -14,6 +14,7 @@
 #include <cstring>
 #include <memory>
 #include <iostream>
+#include <vector>
 
 #define FASTQR_VERSION "1.0.0"
 
