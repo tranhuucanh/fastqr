@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: tranhuucanh/homebrew-fastqr
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: homebrew-fastqr
 
       - name: Update formula
