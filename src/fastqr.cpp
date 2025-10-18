@@ -205,10 +205,14 @@ static VipsImage* add_logo(VipsImage* qr_image, const std::string& logo_path, in
 }
 
 bool generate(const std::string& data, const std::string& output_path, const QROptions& options) {
-    // Initialize libvips (can be called multiple times safely)
-    if (VIPS_INIT("fastqr")) {
-        std::cerr << "Failed to initialize libvips" << std::endl;
-        return false;
+    // Initialize libvips once (cached after first call)
+    static bool vips_initialized = false;
+    if (!vips_initialized) {
+        if (VIPS_INIT("fastqr")) {
+            std::cerr << "Failed to initialize libvips" << std::endl;
+            return false;
+        }
+        vips_initialized = true;
     }
 
     // Generate QR code
@@ -240,9 +244,11 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
         }
     }
 
-    // Save to file
+    // Save to file with optimized PNG settings
     int result = vips_image_write_to_file(final_image, output_path.c_str(),
-                                          "Q", options.quality, NULL);
+                                          "compression", 6,  // Fast compression (default 9)
+                                          "interlace", FALSE,  // No interlacing
+                                          NULL);
     g_object_unref(final_image);
 
     if (result) {

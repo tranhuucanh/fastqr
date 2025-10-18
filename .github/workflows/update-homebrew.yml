@@ -55,7 +55,7 @@ jobs:
 
           # Update Formula/fastqr.rb
           sed -i "s/version \".*\"/version \"$VERSION\"/" Formula/fastqr.rb
-          
+
           # Update URLs with version tag (v1.0.x) and filename
           sed -i "s|download/v[0-9.]*/fastqr-[0-9.]*-macos-arm64.tar.gz|download/v$VERSION/fastqr-$VERSION-macos-arm64.tar.gz|g" Formula/fastqr.rb
           sed -i "s|download/v[0-9.]*/fastqr-[0-9.]*-macos-x86_64.tar.gz|download/v$VERSION/fastqr-$VERSION-macos-x86_64.tar.gz|g" Formula/fastqr.rb
