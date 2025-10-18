@@ -19,6 +19,10 @@ pkg_check_modules(QRENCODE REQUIRED libqrencode)
 # Find libvips
 pkg_check_modules(VIPS REQUIRED vips)
 
+# Add library directories
+link_directories(${QRENCODE_LIBRARY_DIRS})
+link_directories(${VIPS_LIBRARY_DIRS})
+
 # Main library
 add_library(fastqr
     src/fastqr.cpp
@@ -31,6 +35,12 @@ target_include_directories(fastqr
     PRIVATE
         ${QRENCODE_INCLUDE_DIRS}
         ${VIPS_INCLUDE_DIRS}
+)
+
+target_link_directories(fastqr
+    PRIVATE
+        ${QRENCODE_LIBRARY_DIRS}
+        ${VIPS_LIBRARY_DIRS}
 )
 
 target_link_libraries(fastqr
