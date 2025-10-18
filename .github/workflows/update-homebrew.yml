@@ -60,11 +60,18 @@ jobs:
           sed -i "s|download/v[0-9.]*/fastqr-[0-9.]*-macos-arm64.tar.gz|download/v$VERSION/fastqr-$VERSION-macos-arm64.tar.gz|g" Formula/fastqr.rb
           sed -i "s|download/v[0-9.]*/fastqr-[0-9.]*-macos-x86_64.tar.gz|download/v$VERSION/fastqr-$VERSION-macos-x86_64.tar.gz|g" Formula/fastqr.rb
 
-          # Update SHA256 for ARM64 (line after arm64 url)
-          awk -v sha="$ARM64_SHA" '/on_arm/,/sha256/ {if (/sha256/) {sub(/sha256 ".*"/, "sha256 \"" sha "\"")}} 1' Formula/fastqr.rb > tmp && mv tmp Formula/fastqr.rb
+          # Update SHA256 - use sed with line numbers
+          # Find line numbers for each sha256
+          ARM_LINE=$(grep -n "on_arm" Formula/fastqr.rb | head -1 | cut -d: -f1)
+          INTEL_LINE=$(grep -n "on_intel" Formula/fastqr.rb | head -1 | cut -d: -f1)
 
-          # Update SHA256 for x86_64 (line after intel url)
-          awk -v sha="$X86_64_SHA" '/on_intel/,/sha256/ {if (/sha256/) {sub(/sha256 ".*"/, "sha256 \"" sha "\"")}} 1' Formula/fastqr.rb > tmp && mv tmp Formula/fastqr.rb
+          # Update ARM64 SHA256 (first sha256 after on_arm)
+          sed -i.bak "${ARM_LINE},/sha256/s/sha256 \".*\"/sha256 \"$ARM64_SHA\"/" Formula/fastqr.rb
+
+          # Update x86_64 SHA256 (first sha256 after on_intel)
+          sed -i.bak "${INTEL_LINE},/sha256/s/sha256 \".*\"/sha256 \"$X86_64_SHA\"/" Formula/fastqr.rb
+
+          rm -f Formula/fastqr.rb.bak
 
       - name: Commit and push
         run: |
