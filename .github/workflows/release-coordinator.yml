@@ -28,18 +28,18 @@ jobs:
         run: |
           REF="${{ github.event.workflow_run.head_branch }}"
           echo "Full ref: $REF"
-
-          # Extract tag if this is a tag push
-          if [[ $REF == refs/tags/* ]]; then
-            TAG="${REF#refs/tags/}"
+          
+          # Check if this looks like a version tag (starts with 'v' followed by numbers)
+          if [[ $REF =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            TAG="$REF"
             VERSION="${TAG#v}"
             echo "tag=$TAG" >> $GITHUB_OUTPUT
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "is_tag=true" >> $GITHUB_OUTPUT
-            echo "Detected tag: $TAG (version: $VERSION)"
+            echo "✅ Detected version tag: $TAG (version: $VERSION)"
           else
             echo "is_tag=false" >> $GITHUB_OUTPUT
-            echo "Not a tag push, skipping"
+            echo "⏭️  Not a version tag (ref: $REF), skipping"
           fi
 
       - name: Wait for release to have all artifacts
