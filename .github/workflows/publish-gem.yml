@@ -11,7 +11,16 @@ jobs:
   publish-gem:
     runs-on: ubuntu-latest
     steps:
+      - name: Get version first
+        id: pre_version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Will publish version: $VERSION"
+      
       - uses: actions/checkout@v3
+        with:
+          ref: v${{ steps.pre_version.outputs.version }}
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -33,22 +42,31 @@ jobs:
       - name: Download pre-built binaries from release
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
+          
+          # Clean old binaries completely
+          rm -rf bindings/ruby/prebuilt
           mkdir -p bindings/ruby/prebuilt
 
           # Download macOS ARM64
+          echo "📥 Downloading macOS ARM64 binary..."
           curl -L -o bindings/ruby/prebuilt/macos-arm64.tar.gz \
             "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-macos-arm64.tar.gz"
 
           # Download macOS x86_64
+          echo "📥 Downloading macOS x86_64 binary..."
           curl -L -o bindings/ruby/prebuilt/macos-x86_64.tar.gz \
             "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-macos-x86_64.tar.gz"
 
           # Extract binaries
           cd bindings/ruby/prebuilt
+          echo "📦 Extracting binaries..."
           tar -xzf macos-arm64.tar.gz
           tar -xzf macos-x86_64.tar.gz
 
           echo "✅ Downloaded and extracted pre-built binaries"
+          echo "Binary details:"
+          file macos-arm64/bin/fastqr
+          otool -L macos-arm64/bin/fastqr || true
           ls -lR
 
       - name: Build gem
