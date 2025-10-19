@@ -17,7 +17,7 @@ echo "🔄 Updating version to $NEW_VERSION..."
 echo "$NEW_VERSION" > VERSION
 
 # Update CMakeLists.txt
-sed -i.bak "s/project(fastqr VERSION [0-9.]\+ /project(fastqr VERSION $NEW_VERSION /" CMakeLists.txt
+sed -i.bak "s/project(fastqr VERSION [0-9.][0-9.]*/project(fastqr VERSION $NEW_VERSION/" CMakeLists.txt
 rm -f CMakeLists.txt.bak
 
 # Update src/fastqr.cpp
