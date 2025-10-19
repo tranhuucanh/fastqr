@@ -30,6 +30,13 @@
     "url": "https://github.com/tranhuucanh/fastqr/issues"
   },
   "homepage": "https://github.com/tranhuucanh/fastqr#readme",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "lib/",
+    "prebuilt/",
+    "README.md"
+  ],
   "dependencies": {},
   "devDependencies": {},
   "engines": {

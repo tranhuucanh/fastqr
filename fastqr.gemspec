@@ -20,8 +20,15 @@ Gem::Specification.new do |spec|
     files = `git ls-files -z`.split("\x0").reject do |f|
       (f == __FILE__) || f.match(%r{\A(?:(?:bin|test|spec|features)/|\.(?:git|travis|circleci)|appveyor)})
     end
-    # Include pre-built binaries if they exist
-    files += Dir.glob("bindings/ruby/prebuilt/**/*").select { |f| File.file?(f) }
+    
+    # Include pre-built binaries if they exist (even if not in git)
+    # This is for CI builds where binaries are downloaded before gem build
+    prebuilt_files = Dir.glob("bindings/ruby/prebuilt/**/*").select { |f| File.file?(f) }
+    if prebuilt_files.any?
+      puts "📦 Including #{prebuilt_files.length} pre-built binary files in gem"
+      files += prebuilt_files
+    end
+    
     files
   end
 
