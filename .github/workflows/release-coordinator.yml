@@ -79,32 +79,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Trigger publish workflows
+      - name: Notify ready for publish
         if: steps.get_tag.outputs.is_tag == 'true'
         run: |
           VERSION="${{ steps.get_tag.outputs.version }}"
-
-          echo "🚀 Triggering publish workflows for version $VERSION"
-
-          # Trigger npm publish
-          gh workflow run publish-npm.yml \
-            -f version="$VERSION" \
-            --repo ${{ github.repository }}
-
-          echo "✅ Triggered npm publish"
-
-          # Wait a bit before triggering gem to avoid race condition
-          sleep 2
-
-          # Trigger gem publish
-          gh workflow run publish-gem.yml \
-            -f version="$VERSION" \
-            --repo ${{ github.repository }}
-
-          echo "✅ Triggered gem publish"
+          
+          echo "✅ All build artifacts ready for version $VERSION"
           echo ""
-          echo "📊 Monitor workflows at:"
-          echo "https://github.com/${{ github.repository }}/actions"
-        env:
-          GH_TOKEN: ${{ github.token }}
+          echo "📦 Release: https://github.com/${{ github.repository }}/releases/tag/v$VERSION"
+          echo ""
+          echo "🚀 Manual publish commands:"
+          echo "  npm:  gh workflow run publish-npm.yml -f version=$VERSION"
+          echo "  gem:  gh workflow run publish-gem.yml -f version=$VERSION"
+          echo ""
+          echo "📊 Or trigger manually at: https://github.com/${{ github.repository }}/actions"
 
