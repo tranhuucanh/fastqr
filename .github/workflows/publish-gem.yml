@@ -62,10 +62,10 @@ jobs:
           curl -L -o bindings/ruby/prebuilt/linux-x86_64.tar.gz \
             "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-linux-x86_64.tar.gz"
 
-          # Download Linux ARM64
+          # Download Linux ARM64 (aarch64)
           echo "📥 Downloading Linux ARM64 binary..."
           curl -L -o bindings/ruby/prebuilt/linux-arm64.tar.gz \
-            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-linux-arm64.tar.gz"
+            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-linux-aarch64.tar.gz"
 
           # Extract binaries
           cd bindings/ruby/prebuilt
