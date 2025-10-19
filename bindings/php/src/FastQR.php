@@ -2,7 +2,7 @@
 
 /**
  * FastQR - Fast QR Code Generator
- * PHP Binding using FFI
+ * PHP Binding using CLI binary (no FFI needed!)
  *
  * Copyright (C) 2025 FastQR Project
  * Licensed under LGPL-2.1
@@ -10,21 +10,19 @@
 
 namespace FastQR;
 
-use FFI;
 use RuntimeException;
 
 class FastQR
 {
-    private static ?FFI $ffi = null;
-    private static bool $initialized = false;
+    private static ?string $cliPath = null;
 
     /**
-     * Initialize FFI
+     * Find CLI binary
      */
-    private static function init(): void
+    private static function findBinary(): string
     {
-        if (self::$initialized) {
-            return;
+        if (self::$cliPath !== null) {
+            return self::$cliPath;
         }
 
         // Detect platform
@@ -33,58 +31,30 @@ class FastQR
         if ($arch === 'x86_64' || $arch === 'amd64') {
             $arch = 'x86_64';
         } elseif ($arch === 'aarch64' || $arch === 'arm64') {
-            $arch = 'arm64';
+            $arch = $os === 'macos' ? 'arm64' : 'aarch64';
         }
         $platform = "$os-$arch";
-        $ext = $os === 'macos' ? 'dylib' : 'so';
 
-        // Try to find the library (pre-built first, then system)
-        $libPaths = [
-            __DIR__ . "/../../prebuilt/$platform/lib/libfastqr.$ext",  // Pre-built binary
-            '/usr/local/lib/libfastqr.' . $ext,                         // System install
-            '/usr/lib/libfastqr.' . $ext,
-            __DIR__ . '/../../../build/libfastqr.' . $ext,               // Local build
+        // Try to find the binary (pre-built first, then system)
+        $binaryPaths = [
+            __DIR__ . "/../../prebuilt/$platform/bin/fastqr",  // Pre-built binary
+            '/usr/local/bin/fastqr',                            // System install
+            '/usr/bin/fastqr',
+            __DIR__ . '/../../../build/fastqr',                 // Local build
         ];
 
-        $libPath = null;
-        foreach ($libPaths as $path) {
-            if (file_exists($path)) {
-                $libPath = $path;
-                break;
+        foreach ($binaryPaths as $path) {
+            if (file_exists($path) && is_executable($path)) {
+                self::$cliPath = $path;
+                return $path;
             }
         }
 
-        if ($libPath === null) {
-            throw new RuntimeException(
-                "FastQR library not found for platform: $platform\n" .
-                "Please install fastqr or build from source."
-            );
-        }
-
-        // Define C interface
-        $header = '
-            typedef struct {
-                int size;
-                int optimize_size;
-                unsigned char foreground_r;
-                unsigned char foreground_g;
-                unsigned char foreground_b;
-                unsigned char background_r;
-                unsigned char background_g;
-                unsigned char background_b;
-                int ec_level;
-                const char* logo_path;
-                int logo_size_percent;
-                const char* format;
-                int quality;
-            } QROptions;
-
-            bool fastqr_generate(const char* data, const char* output_path, QROptions* options);
-            const char* fastqr_version(void);
-        ';
-
-        self::$ffi = FFI::cdef($header, $libPath);
-        self::$initialized = true;
+        throw new RuntimeException(
+            "FastQR CLI binary not found for platform: $platform\n" .
+            "Searched in:\n" . implode("\n", $binaryPaths) . "\n" .
+            "Please install fastqr or build from source."
+        );
     }
 
     /**
@@ -127,8 +97,6 @@ class FastQR
      */
     public static function generate(string $data, string $outputPath, array $options = []): bool
     {
-        self::init();
-
         if (empty($data)) {
             throw new RuntimeException('Data cannot be empty');
         }
@@ -136,56 +104,64 @@ class FastQR
             throw new RuntimeException('Output path cannot be empty');
         }
 
-        // Create options struct
-        $opts = self::$ffi->new('QROptions');
+        $cliPath = self::findBinary();
+
+        // Build command arguments
+        $args = [
+            escapeshellarg($cliPath),
+            escapeshellarg($data),
+            escapeshellarg($outputPath)
+        ];
 
         // Size (preferred) or width/height (backward compatibility)
         if (isset($options['size'])) {
-            $opts->size = $options['size'];
+            $args[] = '-s ' . (int)$options['size'];
         } elseif (isset($options['width']) || isset($options['height'])) {
-            $opts->size = $options['width'] ?? $options['height'] ?? 300;
-        } else {
-            $opts->size = 300;
+            $size = $options['width'] ?? $options['height'] ?? 300;
+            $args[] = '-s ' . (int)$size;
         }
 
         // Optimize size
-        $opts->optimize_size = $options['optimizeSize'] ?? false ? 1 : 0;
+        if (!empty($options['optimizeSize'])) {
+            $args[] = '-o';
+        }
 
         // Foreground color
-        $fg = $options['foreground'] ?? [0, 0, 0];
-        $opts->foreground_r = $fg[0] ?? 0;
-        $opts->foreground_g = $fg[1] ?? 0;
-        $opts->foreground_b = $fg[2] ?? 0;
+        if (isset($options['foreground'])) {
+            $fg = $options['foreground'];
+            $args[] = '-f ' . implode(',', $fg);
+        }
 
         // Background color
-        $bg = $options['background'] ?? [255, 255, 255];
-        $opts->background_r = $bg[0] ?? 255;
-        $opts->background_g = $bg[1] ?? 255;
-        $opts->background_b = $bg[2] ?? 255;
+        if (isset($options['background'])) {
+            $bg = $options['background'];
+            $args[] = '-b ' . implode(',', $bg);
+        }
 
         // Error correction level
-        $ecLevel = $options['errorLevel'] ?? 'M';
-        $opts->ec_level = match($ecLevel) {
-            'L' => 0,
-            'M' => 1,
-            'Q' => 2,
-            'H' => 3,
-            default => 1
-        };
+        if (isset($options['errorLevel'])) {
+            $args[] = '-e ' . escapeshellarg($options['errorLevel']);
+        }
 
         // Logo
-        $opts->logo_path = $options['logo'] ?? null;
-        $opts->logo_size_percent = $options['logoSize'] ?? 20;
+        if (isset($options['logo'])) {
+            $args[] = '-l ' . escapeshellarg($options['logo']);
+        }
+        if (isset($options['logoSize'])) {
+            $args[] = '-p ' . (int)$options['logoSize'];
+        }
 
-        // Format and quality
-        $opts->format = $options['format'] ?? 'png';
-        $opts->quality = $options['quality'] ?? 95;
+        // Quality
+        if (isset($options['quality'])) {
+            $args[] = '-q ' . (int)$options['quality'];
+        }
 
-        // Call C function
-        $result = self::$ffi->fastqr_generate($data, $outputPath, FFI::addr($opts));
+        // Execute command
+        $cmd = implode(' ', $args) . ' 2>&1';
+        exec($cmd, $output, $returnCode);
 
-        if (!$result) {
-            throw new RuntimeException('Failed to generate QR code');
+        if ($returnCode !== 0) {
+            throw new RuntimeException('Failed to generate QR code: ' . implode("\n", $output));
         }
 
         return true;
@@ -198,8 +174,15 @@ class FastQR
      */
     public static function version(): string
     {
-        self::init();
-        return self::$ffi->fastqr_version();
+        $cliPath = self::findBinary();
+        $cmd = escapeshellarg($cliPath) . ' -v 2>&1';
+        $output = shell_exec($cmd);
+        
+        if ($output === null) {
+            return 'unknown';
+        }
+
+        return trim(str_replace('FastQR v', '', $output));
     }
 
     /**
@@ -241,65 +224,45 @@ class FastQR
         try {
             file_put_contents($tempFile, implode("\n", $dataArray));
 
-            // Find CLI binary
-            $os = PHP_OS_FAMILY === 'Darwin' ? 'macos' : (PHP_OS_FAMILY === 'Linux' ? 'linux' : 'unknown');
-            $arch = php_uname('m');
-            if ($arch === 'x86_64' || $arch === 'amd64') {
-                $arch = 'x86_64';
-            } elseif ($arch === 'aarch64' || $arch === 'arm64') {
-                $arch = 'arm64';
-            }
-            $platform = "$os-$arch";
-
-            $cliPaths = [
-                __DIR__ . "/../../prebuilt/$platform/bin/fastqr",
-                '/usr/local/bin/fastqr',
-                __DIR__ . '/../../../build/fastqr',
-            ];
-
-            $cliPath = null;
-            foreach ($cliPaths as $path) {
-                if (file_exists($path)) {
-                    $cliPath = $path;
-                    break;
-                }
-            }
-
-            if ($cliPath === null) {
-                throw new RuntimeException("FastQR CLI not found for platform: $platform");
-            }
+            $cliPath = self::findBinary();
 
             // Build command
-            $cmd = escapeshellarg($cliPath) . ' -F ' . escapeshellarg($tempFile) . ' ' . escapeshellarg($outputDir);
+            $args = [
+                escapeshellarg($cliPath),
+                '-F',
+                escapeshellarg($tempFile),
+                escapeshellarg($outputDir)
+            ];
 
             if (isset($options['size'])) {
-                $cmd .= ' -s ' . (int)$options['size'];
+                $args[] = '-s ' . (int)$options['size'];
             }
             if (!empty($options['optimizeSize'])) {
-                $cmd .= ' -o';
+                $args[] = '-o';
             }
             if (isset($options['foreground'])) {
                 $fg = $options['foreground'];
-                $cmd .= ' -f ' . implode(',', $fg);
+                $args[] = '-f ' . implode(',', $fg);
             }
             if (isset($options['background'])) {
                 $bg = $options['background'];
-                $cmd .= ' -b ' . implode(',', $bg);
+                $args[] = '-b ' . implode(',', $bg);
             }
             if (isset($options['errorLevel'])) {
-                $cmd .= ' -e ' . escapeshellarg($options['errorLevel']);
+                $args[] = '-e ' . escapeshellarg($options['errorLevel']);
             }
             if (isset($options['logo'])) {
-                $cmd .= ' -l ' . escapeshellarg($options['logo']);
+                $args[] = '-l ' . escapeshellarg($options['logo']);
             }
             if (isset($options['logoSize'])) {
-                $cmd .= ' -p ' . (int)$options['logoSize'];
+                $args[] = '-p ' . (int)$options['logoSize'];
             }
             if (isset($options['quality'])) {
-                $cmd .= ' -q ' . (int)$options['quality'];
+                $args[] = '-q ' . (int)$options['quality'];
             }
 
-            exec($cmd . ' 2>&1', $output, $returnCode);
+            $cmd = implode(' ', $args) . ' 2>&1';
+            exec($cmd, $output, $returnCode);
 
             if ($returnCode !== 0) {
                 throw new RuntimeException('Batch generation failed: ' . implode("\n", $output));
@@ -313,4 +276,3 @@ class FastQR
         }
     }
 }
-
