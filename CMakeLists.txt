@@ -87,13 +87,13 @@ add_executable(fastqr-cli
 if(NOT BUILD_SHARED_LIBS)
     # Add PNG library directories to search path
     link_directories(${PNG_LIBRARY_DIRS})
-    
+
     # Find static versions of libraries
-    find_library(PNG_STATIC_LIBRARY 
+    find_library(PNG_STATIC_LIBRARY
         NAMES libpng.a libpng16.a
-        PATHS 
+        PATHS
             ${PNG_LIBRARY_DIRS}
-            /usr/local/lib 
+            /usr/local/lib
             /opt/homebrew/lib
             /usr/lib
         NO_DEFAULT_PATH

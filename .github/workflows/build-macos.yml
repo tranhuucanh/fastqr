@@ -49,11 +49,11 @@ jobs:
           # Force CMake to use Homebrew libraries (not system SDK)
           export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
           export CMAKE_PREFIX_PATH="/opt/homebrew:$CMAKE_PREFIX_PATH"
-          
+
           echo "=== CMake will search in ==="
           echo "PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
           echo "CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH"
-          
+
           chmod +x scripts/build-binaries.sh
           ./scripts/build-binaries.sh || { echo "Build failed"; cat build.log 2>/dev/null || true; exit 1; }
 
@@ -102,11 +102,11 @@ jobs:
           # Force CMake to use Homebrew libraries (not system SDK)
           export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
           export CMAKE_PREFIX_PATH="/usr/local:$CMAKE_PREFIX_PATH"
-          
+
           echo "=== CMake will search in ==="
           echo "PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
           echo "CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH"
-          
+
           chmod +x scripts/build-binaries.sh
           ./scripts/build-binaries.sh || { echo "Build failed"; cat build.log 2>/dev/null || true; exit 1; }
 

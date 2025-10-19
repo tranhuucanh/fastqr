@@ -17,7 +17,7 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Will publish version: $VERSION"
-      
+
       - uses: actions/checkout@v3
         with:
           ref: v${{ steps.pre_version.outputs.version }}
@@ -42,7 +42,7 @@ jobs:
       - name: Download pre-built binaries from release
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
-          
+
           # Clean old binaries completely
           rm -rf bindings/ruby/prebuilt
           mkdir -p bindings/ruby/prebuilt
