@@ -17,14 +17,32 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install cmake qrencode libpng pkg-config || true
-          # Verify installations
+          set -e  # Exit on error
+          brew install cmake qrencode pkg-config
+          
+          # Force install libpng (may already exist)
+          brew install libpng || brew upgrade libpng || true
+          
+          # Verify critical dependencies
+          echo "=== Verifying installations ==="
           which cmake
           which pkg-config
-          pkg-config --modversion libqrencode || echo "qrencode not found"
-          pkg-config --modversion libpng || echo "libpng not found"
-          echo "libpng version:"
-          pkg-config --modversion libpng
+          
+          echo "=== libqrencode version ==="
+          pkg-config --modversion libqrencode
+          
+          echo "=== libpng version (CRITICAL) ==="
+          PKG_PNG_VER=$(pkg-config --modversion libpng)
+          echo "libpng version: $PKG_PNG_VER"
+          
+          # Ensure we have libpng 1.6+
+          if [[ "$PKG_PNG_VER" < "1.6" ]]; then
+            echo "❌ ERROR: libpng version too old: $PKG_PNG_VER"
+            echo "Expected: 1.6+"
+            exit 1
+          fi
+          
+          echo "✅ All dependencies verified"
 
       - name: Build binary
         run: |
@@ -44,14 +62,32 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install cmake qrencode libpng pkg-config || true
-          # Verify installations
+          set -e  # Exit on error
+          brew install cmake qrencode pkg-config
+          
+          # Force install libpng (may already exist)
+          brew install libpng || brew upgrade libpng || true
+          
+          # Verify critical dependencies
+          echo "=== Verifying installations ==="
           which cmake
           which pkg-config
-          pkg-config --modversion libqrencode || echo "qrencode not found"
-          pkg-config --modversion libpng || echo "libpng not found"
-          echo "libpng version:"
-          pkg-config --modversion libpng
+          
+          echo "=== libqrencode version ==="
+          pkg-config --modversion libqrencode
+          
+          echo "=== libpng version (CRITICAL) ==="
+          PKG_PNG_VER=$(pkg-config --modversion libpng)
+          echo "libpng version: $PKG_PNG_VER"
+          
+          # Ensure we have libpng 1.6+
+          if [[ "$PKG_PNG_VER" < "1.6" ]]; then
+            echo "❌ ERROR: libpng version too old: $PKG_PNG_VER"
+            echo "Expected: 1.6+"
+            exit 1
+          fi
+          
+          echo "✅ All dependencies verified"
 
       - name: Build binary
         run: |
