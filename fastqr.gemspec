@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "fastqr"
-  spec.version       = "1.0.5"
+  spec.version       = "1.0.6"
   spec.authors       = ["FastQR Project"]
   spec.email         = ["fastqr@example.com"]
 
