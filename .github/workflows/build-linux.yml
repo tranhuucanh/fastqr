@@ -19,7 +19,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake libvips-dev pkg-config build-essential wget
-          
+
           # Build libqrencode from source (for static library)
           cd /tmp
           wget https://fukuchi.org/works/qrencode/qrencode-4.1.1.tar.gz
@@ -29,7 +29,7 @@ jobs:
           make -j$(nproc)
           sudo make install
           sudo ldconfig
-          
+
           echo "✅ libqrencode built and installed"
           ls -la /usr/local/lib/libqrencode.*
 
@@ -61,7 +61,7 @@ jobs:
             bash -c "
               apt-get update && \
               apt-get install -y cmake libvips-dev pkg-config build-essential wget && \
-              
+
               # Build libqrencode from source (for static library)
               cd /tmp && \
               wget https://fukuchi.org/works/qrencode/qrencode-4.1.1.tar.gz && \
@@ -71,10 +71,10 @@ jobs:
               make -j\$(nproc) && \
               make install && \
               ldconfig && \
-              
+
               echo '✅ libqrencode built and installed' && \
               ls -la /usr/local/lib/libqrencode.* && \
-              
+
               cd /workspace && \
               chmod +x scripts/build-binaries.sh && \
               ./scripts/build-binaries.sh
