@@ -93,5 +93,50 @@ const char* version();
 
 } // namespace fastqr
 
+// C API for FFI bindings (Ruby, Node.js, Python, etc.)
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * C struct for QR options (FFI-friendly)
+ */
+typedef struct {
+    int size;
+    int optimize_size;  // boolean: 0 or 1
+    unsigned char foreground_r;
+    unsigned char foreground_g;
+    unsigned char foreground_b;
+    unsigned char background_r;
+    unsigned char background_g;
+    unsigned char background_b;
+    int ec_level;  // 0=LOW, 1=MEDIUM, 2=QUARTILE, 3=HIGH
+    const char* logo_path;
+    int logo_size_percent;
+    const char* format;
+    int quality;
+} QROptions;
+
+/**
+ * Generate QR code (C API)
+ *
+ * @param data Data to encode (UTF-8 string)
+ * @param output_path Path to save the QR code image
+ * @param options Pointer to QROptions struct (can be NULL for defaults)
+ * @return 1 if successful, 0 on error
+ */
+int fastqr_generate(const char* data, const char* output_path, const QROptions* options);
+
+/**
+ * Get library version (C API)
+ *
+ * @return Version string (e.g., "1.0.7")
+ */
+const char* fastqr_version(void);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // FASTQR_H
 

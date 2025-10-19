@@ -663,3 +663,55 @@ const char* version() {
 
 } // namespace fastqr
 
+// ============================================================================
+// C API Implementation for FFI bindings
+// ============================================================================
+
+extern "C" {
+
+int fastqr_generate(const char* data, const char* output_path, const QROptions* c_options) {
+    if (!data || !output_path) {
+        return 0;
+    }
+
+    fastqr::QROptions options;
+
+    if (c_options) {
+        options.size = c_options->size;
+        options.optimize_size = (c_options->optimize_size != 0);
+        options.foreground.r = c_options->foreground_r;
+        options.foreground.g = c_options->foreground_g;
+        options.foreground.b = c_options->foreground_b;
+        options.background.r = c_options->background_r;
+        options.background.g = c_options->background_g;
+        options.background.b = c_options->background_b;
+
+        switch (c_options->ec_level) {
+            case 0: options.ec_level = fastqr::ErrorCorrectionLevel::LOW; break;
+            case 1: options.ec_level = fastqr::ErrorCorrectionLevel::MEDIUM; break;
+            case 2: options.ec_level = fastqr::ErrorCorrectionLevel::QUARTILE; break;
+            case 3: options.ec_level = fastqr::ErrorCorrectionLevel::HIGH; break;
+            default: options.ec_level = fastqr::ErrorCorrectionLevel::MEDIUM; break;
+        }
+
+        if (c_options->logo_path) {
+            options.logo_path = c_options->logo_path;
+        }
+        options.logo_size_percent = c_options->logo_size_percent;
+
+        if (c_options->format) {
+            options.format = c_options->format;
+        }
+        options.quality = c_options->quality;
+    }
+
+    bool result = fastqr::generate(data, output_path, options);
+    return result ? 1 : 0;
+}
+
+const char* fastqr_version(void) {
+    return fastqr::version();
+}
+
+} // extern "C"
+

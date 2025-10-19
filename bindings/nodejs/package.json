@@ -1,5 +1,5 @@
 {
-  "name": "@tranhuucanh/fastqr",
+  "name": "fastqr-pro",
   "version": "1.0.7",
   "description": "Fast QR code generator with UTF-8 support, custom colors, logo embedding, and precise size control",
   "main": "index.js",
@@ -37,7 +37,10 @@
     "prebuilt/",
     "README.md"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "ffi-napi": "^4.0.3",
+    "ref-napi": "^3.0.3"
+  },
   "devDependencies": {},
   "engines": {
     "node": ">=14.0.0"

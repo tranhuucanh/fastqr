@@ -15,17 +15,21 @@ if (platform.isPrebuiltAvailable()) {
   // Load via FFI
   const libPath = platform.getPrebuiltPath();
 
+  // Define C struct for options
+  const QROptionsStruct = ref.types.void; // Use void* for simplicity, C function handles NULL
+
   const lib = ffi.Library(libPath, {
-    'fastqr_generate': ['bool', ['string', 'string', 'pointer']],
+    'fastqr_generate': ['int', ['string', 'string', 'pointer']],
     'fastqr_version': ['string', []]
   });
 
   // Wrap FFI functions to match Node addon interface
   fastqr = {
     generate: function(data, outputPath, options = {}) {
-      // TODO: Convert options to C struct
-      // For now, use default options (NULL pointer)
-      return lib.fastqr_generate(data, outputPath, ref.NULL);
+      // For now, pass NULL - C function uses defaults
+      // TODO: Build C struct for full options support
+      const result = lib.fastqr_generate(data, outputPath, ref.NULL);
+      return result === 1; // C returns 1 for success, 0 for failure
     },
     version: function() {
       return lib.fastqr_version();
@@ -45,8 +49,10 @@ if (platform.isPrebuiltAvailable()) {
 /**
  * QR code generation options
  * @typedef {Object} QROptions
- * @property {number} [width=300] - Output width in pixels
- * @property {number} [height=300] - Output height in pixels
+ * @property {number} [size=300] - Output size in pixels (QR codes are square)
+ * @property {boolean} [optimizeSize=false] - Auto round-up to nearest integer multiple for best performance
+ * @property {number} [width=300] - @deprecated Use size instead
+ * @property {number} [height=300] - @deprecated Use size instead
  * @property {number[]} [foreground=[0,0,0]] - QR code color as [R, G, B]
  * @property {number[]} [background=[255,255,255]] - Background color as [R, G, B]
  * @property {string} [errorLevel='M'] - Error correction level: 'L', 'M', 'Q', 'H'
@@ -71,8 +77,8 @@ if (platform.isPrebuiltAvailable()) {
  *
  * // With options
  * fastqr.generate('Hello', 'qr.png', {
- *   width: 500,
- *   height: 500,
+ *   size: 500,
+ *   optimizeSize: true,
  *   foreground: [255, 0, 0],
  *   background: [255, 255, 200],
  *   errorLevel: 'H'
@@ -80,8 +86,7 @@ if (platform.isPrebuiltAvailable()) {
  *
  * // With logo
  * fastqr.generate('Company', 'qr.png', {
- *   width: 600,
- *   height: 600,
+ *   size: 600,
  *   logo: 'logo.png',
  *   logoSize: 25
  * });

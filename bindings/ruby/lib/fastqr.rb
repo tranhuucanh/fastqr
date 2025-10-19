@@ -33,6 +33,13 @@ end
 module FastQR
   class Error < StandardError; end
 
+  # Get library version
+  #
+  # @return [String] Version string
+  def self.version
+    Native.fastqr_version
+  end
+
   # Generate QR code with options
   #
   # @param data [String] Data to encode (UTF-8 supported)
@@ -70,10 +77,12 @@ module FastQR
     raise Error, "Data cannot be empty" if data.nil? || data.empty?
     raise Error, "Output path cannot be empty" if output_path.nil? || output_path.empty?
 
-    result = super(data, output_path, options)
+    # TODO: Build C struct from options hash
+    # For now, pass nil to use defaults
+    result = Native.fastqr_generate_c(data, output_path, nil)
     raise Error, "Failed to generate QR code" unless result
 
-    result
+    true
   end
 
   # Generate multiple QR codes in batch mode (7x faster!)
