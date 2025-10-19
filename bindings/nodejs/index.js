@@ -4,45 +4,63 @@
  */
 
 const platform = require('./lib/platform');
-const ffi = require('ffi-napi');
-const ref = require('ref-napi');
+const { execFileSync } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 
 let fastqr;
 
-// Try to load pre-built binary first, fall back to compiled addon
+// Use pre-built CLI binary (no FFI needed!)
 if (platform.isPrebuiltAvailable()) {
-  // Load via FFI
-  const libPath = platform.getPrebuiltPath();
+  const cliPath = path.join(__dirname, 'prebuilt', platform.getPlatformString(), 'bin', 'fastqr');
+  
+  if (!fs.existsSync(cliPath)) {
+    throw new Error(
+      'FastQR CLI binary not found. Expected at: ' + cliPath + '\n' +
+      'Please reinstall the package: npm install fastqr-pro'
+    );
+  }
 
-  // Define C struct for options
-  const QROptionsStruct = ref.types.void; // Use void* for simplicity, C function handles NULL
-
-  const lib = ffi.Library(libPath, {
-    'fastqr_generate': ['int', ['string', 'string', 'pointer']],
-    'fastqr_version': ['string', []]
-  });
-
-  // Wrap FFI functions to match Node addon interface
+  // Wrap CLI to match API interface
   fastqr = {
     generate: function(data, outputPath, options = {}) {
-      // For now, pass NULL - C function uses defaults
-      // TODO: Build C struct for full options support
-      const result = lib.fastqr_generate(data, outputPath, ref.NULL);
-      return result === 1; // C returns 1 for success, 0 for failure
+      const args = [data, outputPath];
+      
+      // Support both new 'size' and legacy 'width'/'height'
+      const size = options.size || options.width || options.height || 300;
+      args.push('-s', size.toString());
+      
+      if (options.optimizeSize) args.push('-o');
+      if (options.foreground) args.push('-f', options.foreground.join(','));
+      if (options.background) args.push('-b', options.background.join(','));
+      if (options.errorLevel) args.push('-e', options.errorLevel);
+      if (options.logo) args.push('-l', options.logo);
+      if (options.logoSize) args.push('-p', options.logoSize.toString());
+      if (options.quality) args.push('-q', options.quality.toString());
+      
+      try {
+        execFileSync(cliPath, args, { stdio: 'pipe' });
+        return true;
+      } catch (error) {
+        return false;
+      }
     },
     version: function() {
-      return lib.fastqr_version();
+      try {
+        const output = execFileSync(cliPath, ['-v'], { encoding: 'utf8' });
+        return output.trim().replace('FastQR v', '');
+      } catch (error) {
+        return 'unknown';
+      }
     },
-    VERSION: lib.fastqr_version()
+    VERSION: null  // Will be set below
   };
-} else if (platform.isAddonAvailable()) {
-  // Load compiled addon
-  fastqr = require(platform.getAddonPath());
+  
+  fastqr.VERSION = fastqr.version();
 } else {
   throw new Error(
     'FastQR native binding not found. ' +
-    'Please run: npm install --build-from-source'
+    'No pre-built binary available for your platform: ' + process.platform + '-' + process.arch
   );
 }
 
@@ -157,8 +175,7 @@ function generateBatch(dataArray, outputDir, options = {}) {
         fs.writeFileSync(tempFile, dataArray.join('\n'), 'utf8');
 
         // Get CLI path
-        const cliPath = platform.getPrebuiltPath().replace('.dylib', '').replace('.so', '');
-        const actualCliPath = cliPath.endsWith('fastqr') ? cliPath : path.join(path.dirname(cliPath), 'fastqr');
+        const cliPath = path.join(__dirname, 'prebuilt', platform.getPlatformString(), 'bin', 'fastqr');
 
         // Build command arguments
         const args = ['-F', tempFile, outputDir];
@@ -171,7 +188,7 @@ function generateBatch(dataArray, outputDir, options = {}) {
         if (options.logoSize) args.push('-p', options.logoSize.toString());
         if (options.quality) args.push('-q', options.quality.toString());
 
-        execFileSync(actualCliPath, args, { stdio: 'pipe' });
+        execFileSync(cliPath, args, { stdio: 'pipe' });
 
         return { success: dataArray.length, failed: 0 };
     } catch (error) {

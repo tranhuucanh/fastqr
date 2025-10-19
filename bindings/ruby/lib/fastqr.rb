@@ -17,7 +17,7 @@ begin
         ffi_lib lib_path
 
         # Define C functions
-        attach_function :fastqr_generate_c, :fastqr_generate, [:string, :string, :pointer], :bool
+        attach_function :fastqr_generate_c, :fastqr_generate, [:string, :string, :pointer], :int
         attach_function :fastqr_version, [], :string
       end
     end
@@ -80,7 +80,7 @@ module FastQR
     # TODO: Build C struct from options hash
     # For now, pass nil to use defaults
     result = Native.fastqr_generate_c(data, output_path, nil)
-    raise Error, "Failed to generate QR code" unless result
+    raise Error, "Failed to generate QR code" unless result == 1
 
     true
   end

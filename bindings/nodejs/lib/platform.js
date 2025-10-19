@@ -65,8 +65,33 @@ function findFastQRBinary() {
   throw new Error(`Pre-built binary not found for ${platform}`);
 }
 
+/**
+ * Checks if pre-built binary is available
+ * @returns {boolean}
+ */
+function isPrebuiltAvailable() {
+  try {
+    const platform = detectPlatform();
+    const prebuiltDir = path.join(__dirname, '..', 'prebuilt', platform, 'bin');
+    const binaryPath = path.join(prebuiltDir, 'fastqr');
+    return fs.existsSync(binaryPath);
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Gets platform string
+ * @returns {string}
+ */
+function getPlatformString() {
+  return detectPlatform();
+}
+
 module.exports = {
   detectPlatform,
   extractBinary,
-  findFastQRBinary
+  findFastQRBinary,
+  isPrebuiltAvailable,
+  getPlatformString
 };

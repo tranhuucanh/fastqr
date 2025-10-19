@@ -37,10 +37,7 @@
     "prebuilt/",
     "README.md"
   ],
-  "dependencies": {
-    "ffi-napi": "^4.0.3",
-    "ref-napi": "^3.0.3"
-  },
+  "dependencies": {},
   "devDependencies": {},
   "engines": {
     "node": ">=14.0.0"
