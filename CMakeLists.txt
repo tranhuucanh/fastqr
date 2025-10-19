@@ -28,18 +28,34 @@ pkg_check_modules(QRENCODE REQUIRED libqrencode)
 # Add library directories
 link_directories(${QRENCODE_LIBRARY_DIRS})
 
-# Main library
-add_library(fastqr
+# Object library for internal use (no linking yet)
+add_library(fastqr_obj OBJECT
     src/fastqr.cpp
 )
 
-target_include_directories(fastqr
+target_include_directories(fastqr_obj
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${QRENCODE_INCLUDE_DIRS}
         ${PNG_INCLUDE_DIRS}
+)
+
+target_compile_options(fastqr_obj
+    PRIVATE
+        ${QRENCODE_CFLAGS_OTHER}
+)
+
+# Main library (for install and linking by other projects)
+add_library(fastqr
+    $<TARGET_OBJECTS:fastqr_obj>
+)
+
+target_include_directories(fastqr
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
 )
 
 target_link_directories(fastqr
@@ -51,11 +67,6 @@ target_link_libraries(fastqr
     PRIVATE
         ${QRENCODE_LIBRARIES}
         PNG::PNG
-)
-
-target_compile_options(fastqr
-    PRIVATE
-        ${QRENCODE_CFLAGS_OTHER}
 )
 
 # Set library output name
@@ -70,30 +81,52 @@ add_executable(fastqr-cli
     src/cli.cpp
 )
 
-# Force static linking for CLI binary
+# For standalone CLI binary, link with object library and static dependencies
 if(NOT BUILD_SHARED_LIBS)
-    # Link static library and all dependencies statically
-    target_link_libraries(fastqr-cli
-        PRIVATE 
-            fastqr
-            ${QRENCODE_STATIC_LIBRARIES}
+    # Find static versions of libraries
+    find_library(PNG_STATIC_LIBRARY
+        NAMES libpng.a libpng16.a
+        PATHS
+            ${PNG_LIBRARY_DIRS}
+            /usr/local/lib
+            /opt/homebrew/lib
+            /usr/lib
+        NO_DEFAULT_PATH
     )
-    
-    # On macOS/Linux, force static linking of system libraries where possible
-    if(APPLE)
-        target_link_options(fastqr-cli PRIVATE 
-            -static-libgcc 
-            -static-libstdc++
+
+    find_library(QRENCODE_STATIC_LIBRARY
+        NAMES libqrencode.a
+        PATHS
+            ${QRENCODE_LIBRARY_DIRS}
+            /usr/local/lib
+            /opt/homebrew/lib
+            /usr/lib
+        NO_DEFAULT_PATH
+    )
+
+    if(PNG_STATIC_LIBRARY AND QRENCODE_STATIC_LIBRARY)
+        message(STATUS "✓ Found static libpng: ${PNG_STATIC_LIBRARY}")
+        message(STATUS "✓ Found static libqrencode: ${QRENCODE_STATIC_LIBRARY}")
+
+        # Link CLI directly with object library + static libs (no dependency propagation)
+        target_link_libraries(fastqr-cli
+            PRIVATE
+                fastqr_obj
+                ${QRENCODE_STATIC_LIBRARY}
+                ${PNG_STATIC_LIBRARY}
+                z  # zlib is needed by libpng
         )
-    elseif(UNIX)
-        target_link_options(fastqr-cli PRIVATE 
-            -static-libgcc 
-            -static-libstdc++
-            -Wl,-Bstatic
-            -Wl,-Bdynamic
+    else()
+        message(WARNING "Static libraries not found, falling back to dynamic linking")
+        message(WARNING "  libpng: ${PNG_STATIC_LIBRARY}")
+        message(WARNING "  libqrencode: ${QRENCODE_STATIC_LIBRARY}")
+
+        target_link_libraries(fastqr-cli
+            PRIVATE fastqr
         )
     endif()
 else()
+    # Shared library build
     target_link_libraries(fastqr-cli
         PRIVATE fastqr
     )
