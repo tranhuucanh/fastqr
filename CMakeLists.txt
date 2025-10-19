@@ -70,9 +70,34 @@ add_executable(fastqr-cli
     src/cli.cpp
 )
 
-target_link_libraries(fastqr-cli
-    PRIVATE fastqr
-)
+# Force static linking for CLI binary
+if(NOT BUILD_SHARED_LIBS)
+    # Link static library and all dependencies statically
+    target_link_libraries(fastqr-cli
+        PRIVATE 
+            fastqr
+            ${QRENCODE_STATIC_LIBRARIES}
+    )
+    
+    # On macOS/Linux, force static linking of system libraries where possible
+    if(APPLE)
+        target_link_options(fastqr-cli PRIVATE 
+            -static-libgcc 
+            -static-libstdc++
+        )
+    elseif(UNIX)
+        target_link_options(fastqr-cli PRIVATE 
+            -static-libgcc 
+            -static-libstdc++
+            -Wl,-Bstatic
+            -Wl,-Bdynamic
+        )
+    endif()
+else()
+    target_link_libraries(fastqr-cli
+        PRIVATE fastqr
+    )
+endif()
 
 set_target_properties(fastqr-cli PROPERTIES
     OUTPUT_NAME fastqr
