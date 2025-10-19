@@ -57,16 +57,32 @@ jobs:
           curl -L -o bindings/ruby/prebuilt/macos-x86_64.tar.gz \
             "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-macos-x86_64.tar.gz"
 
+          # Download Linux x86_64
+          echo "📥 Downloading Linux x86_64 binary..."
+          curl -L -o bindings/ruby/prebuilt/linux-x86_64.tar.gz \
+            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-linux-x86_64.tar.gz"
+
+          # Download Linux ARM64
+          echo "📥 Downloading Linux ARM64 binary..."
+          curl -L -o bindings/ruby/prebuilt/linux-arm64.tar.gz \
+            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-linux-arm64.tar.gz"
+
           # Extract binaries
           cd bindings/ruby/prebuilt
           echo "📦 Extracting binaries..."
           tar -xzf macos-arm64.tar.gz
           tar -xzf macos-x86_64.tar.gz
+          tar -xzf linux-x86_64.tar.gz
+          tar -xzf linux-arm64.tar.gz
 
           echo "✅ Downloaded and extracted pre-built binaries"
-          echo "Binary details:"
+          echo "Binary details (macOS):"
           file macos-arm64/bin/fastqr
           otool -L macos-arm64/bin/fastqr || true
+          echo "Binary details (Linux):"
+          file linux-x86_64/bin/fastqr
+          ldd linux-x86_64/bin/fastqr || true
+          echo "All binaries:"
           ls -lR
 
       - name: Build gem
