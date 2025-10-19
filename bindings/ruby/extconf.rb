@@ -21,7 +21,7 @@ def check_prebuilt_binary
     when /x86_64|x64/
       'linux-x86_64'
     when /arm64|aarch64/
-      'linux-arm64'
+      'linux-aarch64'
     else
       nil
     end
