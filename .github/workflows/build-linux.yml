@@ -18,7 +18,20 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libqrencode-dev libvips-dev pkg-config build-essential
+          sudo apt-get install -y cmake libvips-dev pkg-config build-essential wget
+          
+          # Build libqrencode from source (for static library)
+          cd /tmp
+          wget https://fukuchi.org/works/qrencode/qrencode-4.1.1.tar.gz
+          tar -xzf qrencode-4.1.1.tar.gz
+          cd qrencode-4.1.1
+          ./configure --enable-static --disable-shared --without-tools
+          make -j$(nproc)
+          sudo make install
+          sudo ldconfig
+          
+          echo "✅ libqrencode built and installed"
+          ls -la /usr/local/lib/libqrencode.*
 
       - name: Build binary
         run: |
@@ -47,7 +60,22 @@ jobs:
             arm64v8/ubuntu:22.04 \
             bash -c "
               apt-get update && \
-              apt-get install -y cmake libqrencode-dev libvips-dev pkg-config build-essential && \
+              apt-get install -y cmake libvips-dev pkg-config build-essential wget && \
+              
+              # Build libqrencode from source (for static library)
+              cd /tmp && \
+              wget https://fukuchi.org/works/qrencode/qrencode-4.1.1.tar.gz && \
+              tar -xzf qrencode-4.1.1.tar.gz && \
+              cd qrencode-4.1.1 && \
+              ./configure --enable-static --disable-shared --without-tools && \
+              make -j\$(nproc) && \
+              make install && \
+              ldconfig && \
+              
+              echo '✅ libqrencode built and installed' && \
+              ls -la /usr/local/lib/libqrencode.* && \
+              
+              cd /workspace && \
               chmod +x scripts/build-binaries.sh && \
               ./scripts/build-binaries.sh
             "

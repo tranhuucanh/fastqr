@@ -38,6 +38,13 @@ mkdir build
 cd build
 
 echo "🔧 Building standalone CLI with static linking..."
+
+# Set PKG_CONFIG_PATH to find custom-built libraries
+if [[ "$OS" == "linux" ]]; then
+    export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+    echo "PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
+fi
+
 # Configure for standalone CLI (all dependencies static)
 cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
