@@ -42,23 +42,22 @@ jobs:
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
           mkdir -p bindings/ruby/prebuilt
-
+          
           # Download macOS ARM64
           curl -L -o bindings/ruby/prebuilt/macos-arm64.tar.gz \
             "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-macos-arm64.tar.gz"
-
+          
           # Download macOS x86_64
           curl -L -o bindings/ruby/prebuilt/macos-x86_64.tar.gz \
             "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-macos-x86_64.tar.gz"
-
-          echo "✅ Downloaded pre-built binaries"
-          ls -lh bindings/ruby/prebuilt/
-
-      - name: Install dependencies
-        run: |
-          cd bindings/ruby
-          gem install bundler
-          bundle install || true
+          
+          # Extract binaries
+          cd bindings/ruby/prebuilt
+          tar -xzf macos-arm64.tar.gz
+          tar -xzf macos-x86_64.tar.gz
+          
+          echo "✅ Downloaded and extracted pre-built binaries"
+          ls -lR
 
       - name: Build gem
         run: |

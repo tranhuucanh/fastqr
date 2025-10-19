@@ -42,21 +42,22 @@ jobs:
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
           mkdir -p bindings/nodejs/prebuilt
-
+          
           # Download macOS ARM64
           curl -L -o bindings/nodejs/prebuilt/macos-arm64.tar.gz \
             "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-macos-arm64.tar.gz"
-
+          
           # Download macOS x86_64
           curl -L -o bindings/nodejs/prebuilt/macos-x86_64.tar.gz \
             "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-macos-x86_64.tar.gz"
-
-          echo "✅ Downloaded pre-built binaries"
-          ls -lh bindings/nodejs/prebuilt/
-
-      - name: Install dependencies
-        working-directory: bindings/nodejs
-        run: npm ci || npm install
+          
+          # Extract binaries
+          cd bindings/nodejs/prebuilt
+          tar -xzf macos-arm64.tar.gz
+          tar -xzf macos-x86_64.tar.gz
+          
+          echo "✅ Downloaded and extracted pre-built binaries"
+          ls -lR
 
       - name: Run tests
         working-directory: bindings/nodejs
