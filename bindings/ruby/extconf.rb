@@ -31,8 +31,10 @@ def check_prebuilt_binary
   
   return false unless platform
   
-  prebuilt_dir = File.expand_path("../../prebuilt/#{platform}", __FILE__)
-  binary_path = File.join(prebuilt_dir, 'fastqr')
+  # When installed as gem, binaries are in bindings/ruby/prebuilt/
+  # When running from repo, they're in ../../prebuilt/
+  prebuilt_dir = File.expand_path("./prebuilt/#{platform}", __dir__)
+  binary_path = File.join(prebuilt_dir, 'bin', 'fastqr')
   
   if File.exist?(binary_path)
     puts "✅ Found pre-built binary at #{binary_path}"
