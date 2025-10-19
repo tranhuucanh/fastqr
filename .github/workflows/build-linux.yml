@@ -18,13 +18,14 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libvips-dev pkg-config build-essential wget
+          sudo apt-get install -y cmake libvips-dev pkg-config build-essential wget autoconf automake libtool
 
           # Build libqrencode from source (for static library)
           cd /tmp
-          wget https://fukuchi.org/works/qrencode/qrencode-4.1.1.tar.gz
-          tar -xzf qrencode-4.1.1.tar.gz
-          cd qrencode-4.1.1
+          wget https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz
+          tar -xzf v4.1.1.tar.gz
+          cd libqrencode-4.1.1
+          ./autogen.sh
           ./configure --enable-static --disable-shared --without-tools
           make -j$(nproc)
           sudo make install
@@ -60,13 +61,14 @@ jobs:
             arm64v8/ubuntu:22.04 \
             bash -c "
               apt-get update && \
-              apt-get install -y cmake libvips-dev pkg-config build-essential wget && \
+              apt-get install -y cmake libvips-dev pkg-config build-essential wget autoconf automake libtool && \
 
               # Build libqrencode from source (for static library)
               cd /tmp && \
-              wget https://fukuchi.org/works/qrencode/qrencode-4.1.1.tar.gz && \
-              tar -xzf qrencode-4.1.1.tar.gz && \
-              cd qrencode-4.1.1 && \
+              wget https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz && \
+              tar -xzf v4.1.1.tar.gz && \
+              cd libqrencode-4.1.1 && \
+              ./autogen.sh && \
               ./configure --enable-static --disable-shared --without-tools && \
               make -j\$(nproc) && \
               make install && \
