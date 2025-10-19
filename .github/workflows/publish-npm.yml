@@ -45,11 +45,11 @@ jobs:
           
           # Download macOS ARM64
           curl -L -o bindings/nodejs/prebuilt/macos-arm64.tar.gz \
-            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-macos-arm64.tar.gz"
+            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-macos-arm64.tar.gz"
           
           # Download macOS x86_64
           curl -L -o bindings/nodejs/prebuilt/macos-x86_64.tar.gz \
-            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-macos-x86_64.tar.gz"
+            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-macos-x86_64.tar.gz"
           
           # Extract binaries
           cd bindings/nodejs/prebuilt
