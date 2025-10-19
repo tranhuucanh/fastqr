@@ -6,8 +6,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["FastQR Project"]
   spec.email         = ["fastqr@example.com"]
 
-  spec.summary       = "The fastest QR code generator — optimized for both single and batch generation."
-  spec.description   = "The fastest QR code generator with full UTF-8 support, custom colors, logo embedding, precise size control, and blazing-fast batch generation."
+  spec.summary       = "The fastest QR code generator on the planet."
+  spec.description   = "Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. Logo embedding. Precise size control."
   spec.homepage      = "https://github.com/tranhuucanh/fastqr"
   spec.license       = "LGPL-2.1"
   spec.required_ruby_version = ">= 2.7.0"
