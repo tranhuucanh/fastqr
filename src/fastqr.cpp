@@ -25,7 +25,7 @@
 // Enable benchmarking
 // #define FASTQR_BENCHMARK
 
-#define FASTQR_VERSION "1.0.10"
+#define FASTQR_VERSION "1.0.11"
 
 namespace fastqr {
 
