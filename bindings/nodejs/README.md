@@ -18,7 +18,7 @@ Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. 
 
 ## 🔥 Performance Benchmarks
 
-### CLI Performance: FastQR vs qrencode
+### ⌨️ CLI Performance: FastQR vs qrencode
 
 *Task: Generate 1,000 QR codes (500×500px)*
 
@@ -31,7 +31,7 @@ Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. 
 
 ---
 
-### Ruby Performance: FastQR vs rqrcode
+### 💎 Ruby Performance: FastQR vs rqrcode
 
 *Task: Generate 1,000 QR codes (500×500px)*
 
@@ -44,7 +44,7 @@ Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. 
 
 ---
 
-### Node.js Performance: FastQR vs qrcode
+### 🟢 Node.js Performance: FastQR vs qrcode
 
 *Task: Generate 1,000 QR codes (500×500px)*
 
@@ -57,17 +57,31 @@ Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. 
 
 ---
 
+### 🐘 PHP Performance: FastQR vs endroid/qr-code
+
+*Task: Generate 1,000 QR codes (500×500px)*
+
+| Library | Sequential Mode | Batch Mode | Speedup |
+|---------|----------------|------------|---------|
+| **FastQR** | 1.75s 🚀 | **0.64s** ⚡ | **8.4x faster** with batch |
+| endroid/qr-code | 14.72s 🐌 | ❌ Not supported | - |
+
+**FastQR is 8.4x faster in sequential mode and 23x faster with batch mode!**
+
+---
+
 ## 💪 Why FastQR Dominates
 
 ### Speed Comparison Summary
 
 | Platform | Library | Sequential | Batch | FastQR Advantage |
 |----------|---------|------------|-------|------------------|
-| **CLI** | qrencode | 2.97s | ❌ | **8x faster** ⚡ |
-| **Ruby** | rqrcode | 59.45s | ❌ | **157x faster** 🚀 |
-| **Node.js** | qrcode | 17.25s | ❌ | **37x faster** ⚡ |
+| **⌨️ CLI** | qrencode | 2.97s | ❌ | **8x faster** ⚡ |
+| **💎 Ruby** | rqrcode | 59.45s | ❌ | **157x faster** 🚀 |
+| **🟢 Node.js** | qrcode | 17.25s | ❌ | **37x faster** ⚡ |
+| **🐘 PHP** | endroid/qr-code | 14.72s | ❌ | **23x faster** 🚀 |
 
-**Average: FastQR with batch mode is 67x faster than popular alternatives!**
+**Average: FastQR with batch mode is 56x faster than popular alternatives!**
 
 ---
 
