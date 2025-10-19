@@ -1,6 +1,6 @@
 {
   "name": "fastqr",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Fast QR code generator with UTF-8 support, custom colors, logo embedding, and precise size control",
   "main": "index.js",
   "types": "index.d.ts",
