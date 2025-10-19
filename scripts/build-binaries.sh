@@ -37,10 +37,11 @@ rm -rf build
 mkdir build
 cd build
 
-# Configure with static linking
+echo "🔧 Building standalone CLI with static linking..."
+# Configure for standalone CLI (all dependencies static)
 cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=ON \
+    -DBUILD_SHARED_LIBS=OFF \
     -DCMAKE_INSTALL_PREFIX="$PWD/install" \
     -DFASTQR_BUILD_EXAMPLES=OFF
 
@@ -51,34 +52,14 @@ else
     make -j$(nproc)
 fi
 
-# Install to temporary location
-make install DESTDIR="$PWD/staging"
-
 cd ..
 
-# Copy binaries
-if [[ "$OS" == "macos" ]]; then
-    cp build/staging/usr/local/lib/libfastqr.*.dylib "$OUTPUT_DIR/lib/libfastqr.dylib" 2>/dev/null || \
-    cp build/libfastqr.*.dylib "$OUTPUT_DIR/lib/libfastqr.dylib" 2>/dev/null || \
-    cp build/libfastqr.dylib "$OUTPUT_DIR/lib/libfastqr.dylib"
+# Copy standalone CLI binary (no dylib needed!)
+cp build/fastqr "$OUTPUT_DIR/bin/fastqr"
+echo "✅ Built standalone CLI (all static - no dependencies!)"
 
-    cp build/staging/usr/local/bin/fastqr "$OUTPUT_DIR/bin/fastqr" 2>/dev/null || \
-    cp build/fastqr "$OUTPUT_DIR/bin/fastqr"
-else
-    # Copy all .so files to lib directory
-    if [ -f build/staging/usr/local/lib/libfastqr.so ]; then
-        cp build/staging/usr/local/lib/libfastqr.so* "$OUTPUT_DIR/lib/"
-    else
-        cp build/libfastqr.so* "$OUTPUT_DIR/lib/"
-    fi
-
-    # Copy binary
-    if [ -f build/staging/usr/local/bin/fastqr ]; then
-        cp build/staging/usr/local/bin/fastqr "$OUTPUT_DIR/bin/fastqr"
-    else
-        cp build/fastqr "$OUTPUT_DIR/bin/fastqr"
-    fi
-fi
+# No shared library needed - CLI is standalone!
+# (Ruby and Node.js use CLI binary directly)
 
 # Copy headers
 cp -r include "$OUTPUT_DIR/"

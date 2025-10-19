@@ -3,33 +3,6 @@
 require_relative "fastqr/version"
 require_relative "fastqr/platform"
 
-# Load pre-built binary if available, otherwise try to load compiled extension
-begin
-  if FastQR::Platform.prebuilt_available?
-    # Load from pre-built binary
-    require 'ffi'
-
-    module FastQR
-      module Native
-        extend FFI::Library
-
-        lib_path = Platform.lib_path
-        ffi_lib lib_path
-
-        # Define C functions
-        attach_function :fastqr_generate_c, :fastqr_generate, [:string, :string, :pointer], :int
-        attach_function :fastqr_version, [], :string
-      end
-    end
-  else
-    # Fall back to compiled extension
-    require_relative "fastqr/fastqr"
-  end
-rescue LoadError => e
-  warn "Warning: Could not load FastQR native extension: #{e.message}"
-  warn "Please run: gem install fastqr -- --with-system-libraries"
-end
-
 module FastQR
   class Error < StandardError; end
 
@@ -37,7 +10,11 @@ module FastQR
   #
   # @return [String] Version string
   def self.version
-    Native.fastqr_version
+    cli_path = Platform.find_binary
+    output = `#{cli_path} -v 2>&1`.strip
+    output.sub('FastQR v', '')
+  rescue => e
+    VERSION
   end
 
   # Generate QR code with options
@@ -77,10 +54,22 @@ module FastQR
     raise Error, "Data cannot be empty" if data.nil? || data.empty?
     raise Error, "Output path cannot be empty" if output_path.nil? || output_path.empty?
 
-    # TODO: Build C struct from options hash
-    # For now, pass nil to use defaults
-    result = Native.fastqr_generate_c(data, output_path, nil)
-    raise Error, "Failed to generate QR code" unless result == 1
+    cli_path = Platform.find_binary
+    args = [data, output_path]
+
+    # Build command arguments from options
+    args += ['-s', options[:size].to_s] if options[:size]
+    args += ['-o'] if options[:optimize_size]
+    args += ['-f', options[:foreground].join(',')] if options[:foreground]
+    args += ['-b', options[:background].join(',')] if options[:background]
+    args += ['-e', options[:error_level]] if options[:error_level]
+    args += ['-l', options[:logo]] if options[:logo]
+    args += ['-p', options[:logo_size].to_s] if options[:logo_size]
+    args += ['-q', options[:quality].to_s] if options[:quality]
+
+    # Execute CLI binary
+    result = system(cli_path, *args, out: File::NULL, err: File::NULL)
+    raise Error, "Failed to generate QR code" unless result
 
     true
   end

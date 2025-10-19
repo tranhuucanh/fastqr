@@ -57,9 +57,9 @@ console.log('✅ Result:', result2);
 // Test 3: With options
 console.log('');
 console.log('Test 3: QR with optimize...');
-const result3 = fastqr.generate('Test Optimize', 'test_node_opt.png', { 
-  size: 500, 
-  optimizeSize: true 
+const result3 = fastqr.generate('Test Optimize', 'test_node_opt.png', {
+  size: 500,
+  optimizeSize: true
 });
 console.log('✅ Result:', result3);
 

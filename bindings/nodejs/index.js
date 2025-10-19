@@ -13,7 +13,7 @@ let fastqr;
 // Use pre-built CLI binary (no FFI needed!)
 if (platform.isPrebuiltAvailable()) {
   const cliPath = path.join(__dirname, 'prebuilt', platform.getPlatformString(), 'bin', 'fastqr');
-  
+
   if (!fs.existsSync(cliPath)) {
     throw new Error(
       'FastQR CLI binary not found. Expected at: ' + cliPath + '\n' +
@@ -25,11 +25,11 @@ if (platform.isPrebuiltAvailable()) {
   fastqr = {
     generate: function(data, outputPath, options = {}) {
       const args = [data, outputPath];
-      
+
       // Support both new 'size' and legacy 'width'/'height'
       const size = options.size || options.width || options.height || 300;
       args.push('-s', size.toString());
-      
+
       if (options.optimizeSize) args.push('-o');
       if (options.foreground) args.push('-f', options.foreground.join(','));
       if (options.background) args.push('-b', options.background.join(','));
@@ -37,7 +37,7 @@ if (platform.isPrebuiltAvailable()) {
       if (options.logo) args.push('-l', options.logo);
       if (options.logoSize) args.push('-p', options.logoSize.toString());
       if (options.quality) args.push('-q', options.quality.toString());
-      
+
       try {
         execFileSync(cliPath, args, { stdio: 'pipe' });
         return true;
@@ -55,7 +55,7 @@ if (platform.isPrebuiltAvailable()) {
     },
     VERSION: null  // Will be set below
   };
-  
+
   fastqr.VERSION = fastqr.version();
 } else {
   throw new Error(

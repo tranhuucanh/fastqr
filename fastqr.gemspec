@@ -35,7 +35,7 @@ Gem::Specification.new do |spec|
   spec.extensions    = ["bindings/ruby/extconf.rb"]
   spec.require_paths = ["bindings/ruby/lib"]
 
-  spec.add_dependency "ffi", "~> 1.15"
+  # No runtime dependencies - uses pre-built CLI binary
 
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rake-compiler", "~> 1.2"
