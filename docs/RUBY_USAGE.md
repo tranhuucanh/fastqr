@@ -49,8 +49,10 @@ Generate a QR code and save to file.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `:width` | Integer | `300` | Output width in pixels |
-| `:height` | Integer | `300` | Output height in pixels |
+| `:size` | Integer | `300` | Output size in pixels (QR codes are square) |
+| `:optimize_size` | Boolean | `false` | Auto round-up for best performance |
+| `:width` | Integer | - | (Deprecated) Use `:size` instead |
+| `:height` | Integer | - | (Deprecated) Use `:size` instead |
 | `:foreground` | Array[3] | `[0, 0, 0]` | QR code color (RGB) |
 | `:background` | Array[3] | `[255, 255, 255]` | Background color (RGB) |
 | `:error_level` | String | `'M'` | Error correction: 'L', 'M', 'Q', 'H' |
@@ -58,6 +60,24 @@ Generate a QR code and save to file.
 | `:logo_size` | Integer | `20` | Logo size as percentage (1-50) |
 | `:quality` | Integer | `95` | Image quality (1-100) |
 | `:format` | String | `'png'` | Output format: 'png', 'jpg', 'webp' |
+
+### `FastQR.generate_batch(data_array, output_dir, options = {})`
+
+Generate multiple QR codes at once - **7x faster** than calling `generate` multiple times!
+
+**Parameters:**
+- `data_array` (Array[String], required) - Array of strings to encode
+- `output_dir` (String, required) - Directory to save QR codes (created if doesn't exist)
+- `options` (Hash, optional) - Same options as `generate`
+
+**Returns:** Hash with `:success` and `:failed` counts
+
+**Example:**
+```ruby
+data = ["QR 1", "QR 2", "QR 3"]
+FastQR.generate_batch(data, "output/", size: 500, optimize_size: true)
+# Creates: output/1.png, output/2.png, output/3.png
+```
 
 ### `FastQR.version`
 
@@ -82,34 +102,42 @@ FastQR.generate("https://example.com", "qr.png")
 
 ```ruby
 FastQR.generate("Large QR", "large.png",
-  width: 1000,
-  height: 1000
+  size: 1000
 )
 ```
 
-### 3. Colored QR Code
+### 3. Optimized Size (faster generation)
+
+```ruby
+FastQR.generate("Fast QR", "fast.png",
+  size: 500,
+  optimize_size: true
+)
+```
+
+### 4. Colored QR Code
 
 ```ruby
 # Red QR on yellow background
 FastQR.generate("Colored", "colored.png",
+  size: 500,
   foreground: [255, 0, 0],      # Red
   background: [255, 255, 200]   # Light yellow
 )
 ```
 
-### 4. QR Code with Logo
+### 5. QR Code with Logo
 
 ```ruby
 FastQR.generate("Company", "company.png",
-  width: 800,
-  height: 800,
+  size: 800,
   logo: "logo.png",
   logo_size: 25,
   error_level: 'H'  # High error correction for logo
 )
 ```
 
-### 5. High Error Correction
+### 6. High Error Correction
 
 ```ruby
 FastQR.generate("Important Data", "qr.png",
@@ -117,7 +145,7 @@ FastQR.generate("Important Data", "qr.png",
 )
 ```
 
-### 6. UTF-8 Support
+### 7. UTF-8 Support
 
 ```ruby
 # Vietnamese
@@ -130,7 +158,7 @@ FastQR.generate("こんにちは日本", "japanese.png")
 FastQR.generate("Hello 👋 World 🌍", "emoji.png")
 ```
 
-### 7. Different Formats
+### 8. Different Formats
 
 ```ruby
 # PNG (default)
@@ -141,6 +169,26 @@ FastQR.generate("Data", "output.jpg", quality: 90)
 
 # WebP
 FastQR.generate("Data", "output.webp", quality: 85)
+```
+
+### 9. Batch Generation (7x faster!)
+
+```ruby
+# Generate 1000 QR codes
+data = (1..1000).map { |i| "Product #{i}" }
+
+# Old way (slow - ~3 seconds)
+# data.each_with_index do |text, i|
+#   FastQR.generate(text, "qr_#{i+1}.png", size: 500)
+# end
+
+# New way (fast - ~0.4 seconds!)
+result = FastQR.generate_batch(data, "qr_codes/",
+  size: 500,
+  optimize_size: true
+)
+puts "Generated #{result[:success]} QR codes"
+# Creates: qr_codes/1.png, qr_codes/2.png, ..., qr_codes/1000.png
 ```
 
 ## Rails Integration

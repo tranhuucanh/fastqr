@@ -1,43 +1,30 @@
 name: Update Homebrew Formula
 
 on:
-  workflow_run:
-    workflows: ["Build macOS Binaries"]
-    types:
-      - completed
+  release:
+    types: [published]
 
 jobs:
   update-formula:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Checkout fastqr repo
-        uses: actions/checkout@v3
-        with:
-          repository: tranhuucanh/fastqr
-          ref: ${{ github.event.workflow_run.head_branch }}
-
       - name: Get release info
         id: release
         run: |
-          # Get version from tag
-          git fetch --tags
-          VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
+          # Get version from release tag (e.g., v1.0.1 → 1.0.1)
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
 
-      - name: Download and hash ARM64
-        id: arm64
+      - name: Download and hash source tarball
+        id: source
         run: |
-          curl -L -o arm64.tar.gz "https://github.com/tranhuucanh/fastqr/releases/download/v${{ steps.release.outputs.version }}/fastqr-${{ steps.release.outputs.version }}-macos-arm64.tar.gz"
-          SHA256=$(shasum -a 256 arm64.tar.gz | cut -d' ' -f1)
+          # Download source tarball from GitHub
+          curl -L -o source.tar.gz "https://github.com/tranhuucanh/fastqr/archive/refs/tags/v${{ steps.release.outputs.version }}.tar.gz"
+          SHA256=$(shasum -a 256 source.tar.gz | cut -d' ' -f1)
           echo "sha256=$SHA256" >> $GITHUB_OUTPUT
-
-      - name: Download and hash x86_64
-        id: x86_64
-        run: |
-          curl -L -o x86_64.tar.gz "https://github.com/tranhuucanh/fastqr/releases/download/v${{ steps.release.outputs.version }}/fastqr-${{ steps.release.outputs.version }}-macos-x86_64.tar.gz"
-          SHA256=$(shasum -a 256 x86_64.tar.gz | cut -d' ' -f1)
-          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "Source SHA256: $SHA256"
 
       - name: Checkout homebrew-fastqr repo
         uses: actions/checkout@v3
@@ -50,28 +37,21 @@ jobs:
         run: |
           cd homebrew-fastqr
           VERSION="${{ steps.release.outputs.version }}"
-          ARM64_SHA="${{ steps.arm64.outputs.sha256 }}"
-          X86_64_SHA="${{ steps.x86_64.outputs.sha256 }}"
+          SHA256="${{ steps.source.outputs.sha256 }}"
 
-          # Update Formula/fastqr.rb
+          echo "Updating formula to version $VERSION with SHA256 $SHA256"
+
+          # Update version
           sed -i "s/version \".*\"/version \"$VERSION\"/" Formula/fastqr.rb
 
-          # Update URLs with version tag (v1.0.x) and filename
-          sed -i "s|download/v[0-9.]*/fastqr-[0-9.]*-macos-arm64.tar.gz|download/v$VERSION/fastqr-$VERSION-macos-arm64.tar.gz|g" Formula/fastqr.rb
-          sed -i "s|download/v[0-9.]*/fastqr-[0-9.]*-macos-x86_64.tar.gz|download/v$VERSION/fastqr-$VERSION-macos-x86_64.tar.gz|g" Formula/fastqr.rb
+          # Update URL to source tarball
+          sed -i "s|url \".*\"|url \"https://github.com/tranhuucanh/fastqr/archive/refs/tags/v$VERSION.tar.gz\"|" Formula/fastqr.rb
 
-          # Update SHA256 - use sed with line numbers
-          # Find line numbers for each sha256
-          ARM_LINE=$(grep -n "on_arm" Formula/fastqr.rb | head -1 | cut -d: -f1)
-          INTEL_LINE=$(grep -n "on_intel" Formula/fastqr.rb | head -1 | cut -d: -f1)
+          # Update SHA256
+          sed -i "s/sha256 \".*\"/sha256 \"$SHA256\"/" Formula/fastqr.rb
 
-          # Update ARM64 SHA256 (first sha256 after on_arm)
-          sed -i.bak "${ARM_LINE},/sha256/s/sha256 \".*\"/sha256 \"$ARM64_SHA\"/" Formula/fastqr.rb
-
-          # Update x86_64 SHA256 (first sha256 after on_intel)
-          sed -i.bak "${INTEL_LINE},/sha256/s/sha256 \".*\"/sha256 \"$X86_64_SHA\"/" Formula/fastqr.rb
-
-          rm -f Formula/fastqr.rb.bak
+          echo "Formula updated:"
+          cat Formula/fastqr.rb
 
       - name: Commit and push
         run: |
@@ -79,10 +59,6 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-          # Configure git to use token for authentication
-          git remote set-url origin https://x-access-token:${{ secrets.HOMEBREW_TAP_TOKEN }}@github.com/tranhuucanh/homebrew-fastqr.git
-
           git add Formula/fastqr.rb
-          git commit -m "Update to v${{ steps.release.outputs.version }}"
+          git commit -m "chore: update to v${{ steps.release.outputs.version }}"
           git push
-

@@ -75,5 +75,55 @@ module FastQR
 
     result
   end
+
+  # Generate multiple QR codes in batch mode (7x faster!)
+  #
+  # @param data_array [Array<String>] Array of strings to encode
+  # @param output_dir [String] Directory to save QR codes (will be created if it doesn't exist)
+  # @param options [Hash] Generation options (same as generate)
+  # @return [Hash] Result with :success and :failed counts
+  #
+  # @example Batch generation
+  #   data = ["QR 1", "QR 2", "QR 3"]
+  #   FastQR.generate_batch(data, "output_dir/", size: 500)
+  #   # Creates: output_dir/1.png, output_dir/2.png, output_dir/3.png
+  def self.generate_batch(data_array, output_dir, options = {})
+    raise Error, "Data array cannot be empty" if data_array.nil? || data_array.empty?
+    raise Error, "Output directory cannot be empty" if output_dir.nil? || output_dir.empty?
+
+    # Create output directory
+    require 'fileutils'
+    FileUtils.mkdir_p(output_dir)
+
+    # Create a temporary batch file
+    require 'tempfile'
+    temp_file = Tempfile.new(['fastqr_batch', '.txt'])
+    begin
+      data_array.each { |line| temp_file.puts(line) }
+      temp_file.close
+
+      # Call CLI with batch mode
+      lib_dir = File.expand_path('../../../lib', __dir__)
+      cli_path = File.join(lib_dir, Platform.binary_name)
+
+      # Build command
+      cmd_parts = [cli_path, '-F', temp_file.path, output_dir]
+      cmd_parts += ['-s', options[:size].to_s] if options[:size]
+      cmd_parts += ['-o'] if options[:optimize_size]
+      cmd_parts += ['-f', options[:foreground].join(',')] if options[:foreground]
+      cmd_parts += ['-b', options[:background].join(',')] if options[:background]
+      cmd_parts += ['-e', options[:error_level]] if options[:error_level]
+      cmd_parts += ['-l', options[:logo]] if options[:logo]
+      cmd_parts += ['-p', options[:logo_size].to_s] if options[:logo_size]
+      cmd_parts += ['-q', options[:quality].to_s] if options[:quality]
+
+      result = system(*cmd_parts, out: File::NULL, err: File::NULL)
+      raise Error, "Batch generation failed" unless result
+
+      {success: data_array.size, failed: 0}
+    ensure
+      temp_file.unlink
+    end
+  end
 end
 

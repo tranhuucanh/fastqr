@@ -45,8 +45,10 @@ Generate a QR code and save to file.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `'width'` | int | `300` | Output width in pixels |
-| `'height'` | int | `300` | Output height in pixels |
+| `'size'` | int | `300` | Output size in pixels (QR codes are square) |
+| `'optimizeSize'` | bool | `false` | Auto round-up for best performance |
+| `'width'` | int | - | (Deprecated) Use `'size'` instead |
+| `'height'` | int | - | (Deprecated) Use `'size'` instead |
 | `'foreground'` | array[3] | `[0, 0, 0]` | QR code color (RGB) |
 | `'background'` | array[3] | `[255, 255, 255]` | Background color (RGB) |
 | `'errorLevel'` | string | `'M'` | Error correction: 'L', 'M', 'Q', 'H' |
@@ -54,6 +56,25 @@ Generate a QR code and save to file.
 | `'logoSize'` | int | `20` | Logo size as percentage (1-50) |
 | `'quality'` | int | `95` | Image quality (1-100) |
 | `'format'` | string | `'png'` | Output format: 'png', 'jpg', 'webp' |
+
+### `FastQR::generateBatch($dataArray, $outputDir, $options = [])`
+
+Generate multiple QR codes at once - **7x faster** than calling `generate` multiple times!
+
+**Parameters:**
+- `$dataArray` (array, required) - Array of strings to encode
+- `$outputDir` (string, required) - Directory to save QR codes (created if doesn't exist)
+- `$options` (array, optional) - Same options as `generate`
+
+**Returns:** array - `['success' => int, 'failed' => int]`
+
+**Example:**
+```php
+$data = ['QR 1', 'QR 2', 'QR 3'];
+$result = FastQR::generateBatch($data, 'output/', ['size' => 500, 'optimizeSize' => true]);
+// Creates: output/1.png, output/2.png, output/3.png
+echo "Generated {$result['success']} QR codes";
+```
 
 ### `FastQR::version()`
 
@@ -81,8 +102,7 @@ FastQR::generate('https://example.com', 'qr.png');
 
 ```php
 FastQR::generate('Large QR', 'large.png', [
-    'width' => 1000,
-    'height' => 1000
+    'size' => 1000
 ]);
 ```
 
@@ -100,8 +120,7 @@ FastQR::generate('Colored', 'colored.png', [
 
 ```php
 FastQR::generate('Company', 'company.png', [
-    'width' => 800,
-    'height' => 800,
+    'size' => 800,
     'logo' => 'logo.png',
     'logoSize' => 25,
     'errorLevel' => 'H'  // High error correction for logo
@@ -162,7 +181,7 @@ class QRCodeController extends Controller
     {
         $validated = $request->validate([
             'data' => 'required|string',
-            'width' => 'nullable|integer|min:100|max:5000',
+            'size' => 'nullable|integer|min:100|max:5000',
             'height' => 'nullable|integer|min:100|max:5000',
         ]);
 
@@ -203,7 +222,7 @@ class QRCodeController extends Controller
         $qrPath = storage_path('app/public/qrcodes/' . $filename);
 
         FastQR::generate($validated['data'], $qrPath, [
-            'width' => 800,
+            'size' => 800,
             'height' => 800,
             'logo' => $fullLogoPath,
             'logoSize' => 25,
@@ -228,7 +247,7 @@ class QRCodeController extends Controller
         }
 
         FastQR::generate($data, $path, [
-            'width' => 600,
+            'size' => 600,
             'height' => 600
         ]);
 
@@ -280,7 +299,7 @@ class QRCodeService
         $filepath = $this->outputPath . '/' . $filename;
 
         $defaultOptions = [
-            'width' => 500,
+            'size' => 500,
             'height' => 500,
             'errorLevel' => 'M'
         ];
@@ -378,7 +397,7 @@ class Event extends Model
         $eventInfo .= "URL: {$this->url}";
 
         FastQR::generate($eventInfo, $path, [
-            'width' => 600,
+            'size' => 600,
             'height' => 600,
             'errorLevel' => 'H'
         ]);
@@ -434,7 +453,7 @@ class GenerateUserQRCode implements ShouldQueue
         $path = storage_path('app/public/qrcodes/' . $filename);
 
         FastQR::generate($vcard, $path, [
-            'width' => 600,
+            'size' => 600,
             'height' => 600,
             'errorLevel' => 'H'
         ]);
@@ -471,7 +490,7 @@ class GenerateQRCode extends Command
 
         try {
             FastQR::generate($data, $path, [
-                'width' => 600,
+                'size' => 600,
                 'height' => 600
             ]);
 
@@ -526,7 +545,7 @@ function fastqr_admin_page() {
         $qr_path = $upload_dir['path'] . '/' . $filename;
 
         FastQR::generate($data, $qr_path, [
-            'width' => 500,
+            'size' => 500,
             'height' => 500
         ]);
 
@@ -560,7 +579,7 @@ add_shortcode('fastqr', 'fastqr_shortcode');
 function fastqr_shortcode($atts) {
     $atts = shortcode_atts([
         'data' => '',
-        'width' => 300,
+        'size' => 300,
         'height' => 300
     ], $atts);
 
@@ -732,7 +751,7 @@ class FastQRTest extends TestCase
     public function testGenerateWithOptions()
     {
         $result = FastQR::generate('Test', $this->outputPath, [
-            'width' => 500,
+            'size' => 500,
             'height' => 500,
             'errorLevel' => 'H'
         ]);

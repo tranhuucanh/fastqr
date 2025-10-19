@@ -24,3 +24,5 @@ Makefile
 *.swo
 *~
 
+.cursor/rules/dbmm.mdc
+.cursor/rules/DBMM_QUESTION.md

@@ -113,8 +113,74 @@ function version() {
     return fastqr.version();
 }
 
+/**
+ * Generate multiple QR codes in batch mode (7x faster!)
+ * @param {string[]} dataArray - Array of strings to encode
+ * @param {string} outputDir - Directory to save QR codes (will be created if it doesn't exist)
+ * @param {QROptions} [options={}] - Generation options (same as generate)
+ * @returns {Object} Result with success and failed counts
+ *
+ * @example
+ * const fastqr = require('fastqr');
+ *
+ * // Batch generation
+ * const data = ['QR 1', 'QR 2', 'QR 3'];
+ * fastqr.generateBatch(data, 'output_dir/', { size: 500 });
+ * // Creates: output_dir/1.png, output_dir/2.png, output_dir/3.png
+ */
+function generateBatch(dataArray, outputDir, options = {}) {
+    if (!Array.isArray(dataArray) || dataArray.length === 0) {
+        throw new TypeError('Data array must be a non-empty array');
+    }
+    if (!outputDir || typeof outputDir !== 'string') {
+        throw new TypeError('Output directory must be a non-empty string');
+    }
+
+    const fs = require('fs');
+    const { execFileSync } = require('child_process');
+    const os = require('os');
+    const path = require('path');
+
+    // Create output directory
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    // Create temporary batch file
+    const tempFile = path.join(os.tmpdir(), `fastqr_batch_${Date.now()}.txt`);
+    try {
+        fs.writeFileSync(tempFile, dataArray.join('\n'), 'utf8');
+
+        // Get CLI path
+        const cliPath = platform.getPrebuiltPath().replace('.dylib', '').replace('.so', '');
+        const actualCliPath = cliPath.endsWith('fastqr') ? cliPath : path.join(path.dirname(cliPath), 'fastqr');
+
+        // Build command arguments
+        const args = ['-F', tempFile, outputDir];
+        if (options.size) args.push('-s', options.size.toString());
+        if (options.optimizeSize) args.push('-o');
+        if (options.foreground) args.push('-f', options.foreground.join(','));
+        if (options.background) args.push('-b', options.background.join(','));
+        if (options.errorLevel) args.push('-e', options.errorLevel);
+        if (options.logo) args.push('-l', options.logo);
+        if (options.logoSize) args.push('-p', options.logoSize.toString());
+        if (options.quality) args.push('-q', options.quality.toString());
+
+        execFileSync(actualCliPath, args, { stdio: 'pipe' });
+
+        return { success: dataArray.length, failed: 0 };
+    } catch (error) {
+        throw new Error(`Batch generation failed: ${error.message}`);
+    } finally {
+        if (fs.existsSync(tempFile)) {
+            fs.unlinkSync(tempFile);
+        }
+    }
+}
+
 module.exports = {
     generate,
+    generateBatch,
     version,
     VERSION: fastqr.VERSION
 };

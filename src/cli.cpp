@@ -10,12 +10,21 @@
 
 #include "fastqr.h"
 #include <iostream>
+#include <fstream>
+#include <vector>
 #include <cstring>
 #include <cstdlib>
+#include <sys/stat.h>
+#include <errno.h>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 void print_usage(const char* program_name) {
     std::cout << "FastQR v" << fastqr::version() << " - Fast QR Code Generator\n\n";
-    std::cout << "Usage: " << program_name << " [OPTIONS] <data> <output_file>\n\n";
+    std::cout << "Usage: " << program_name << " [OPTIONS] <data> <output_file>\n";
+    std::cout << "       " << program_name << " [OPTIONS] -F <input.txt> <output_dir>\n\n";
     std::cout << "Options:\n";
     std::cout << "  -s, --size SIZE         Output size in pixels (default: 300)\n";
     std::cout << "  -o, --optimize          Auto round-up size for best performance\n";
@@ -25,6 +34,7 @@ void print_usage(const char* program_name) {
     std::cout << "  -l, --logo PATH         Path to logo image\n";
     std::cout << "  -p, --logo-size N       Logo size percentage (default: 20)\n";
     std::cout << "  -q, --quality N         Image quality 1-100 (default: 95)\n";
+    std::cout << "  -F, --file PATH         Batch mode: process text file (one QR per line)\n";
     std::cout << "  -h, --help              Show this help\n";
     std::cout << "  -v, --version           Show version\n\n";
     std::cout << "Examples:\n";
@@ -33,6 +43,7 @@ void print_usage(const char* program_name) {
     std::cout << "  " << program_name << " -s 500 -o \"Optimized\" fast.png\n";
     std::cout << "  " << program_name << " -s 500 -f 255,0,0 \"Red QR\" red_qr.png\n";
     std::cout << "  " << program_name << " -l logo.png \"Company\" qr_with_logo.png\n";
+    std::cout << "  " << program_name << " -F batch.txt output_dir/ -s 500 -o\n";
 }
 
 bool parse_color(const char* str, fastqr::QROptions::Color& color) {
@@ -59,6 +70,105 @@ bool parse_size(const char* str, int& size) {
     return true;
 }
 
+// Create directory recursively
+bool mkdir_p(const std::string& path) {
+    struct stat st;
+    if (stat(path.c_str(), &st) == 0) {
+        return S_ISDIR(st.st_mode);
+    }
+
+    // Try to create directory
+    if (mkdir(path.c_str(), 0755) == 0) {
+        return true;
+    }
+
+    if (errno != ENOENT) {
+        return false;
+    }
+
+    // Parent doesn't exist, create it
+    size_t pos = path.find_last_of('/');
+    if (pos == std::string::npos) {
+        return false;
+    }
+
+    if (!mkdir_p(path.substr(0, pos))) {
+        return false;
+    }
+
+    return mkdir(path.c_str(), 0755) == 0;
+}
+
+// Read batch file (one QR text per line)
+bool read_batch_file(const std::string& filename, std::vector<std::string>& lines) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error: Cannot open file: " << filename << std::endl;
+        return false;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (!line.empty()) {
+            lines.push_back(line);
+        }
+    }
+
+    if (lines.empty()) {
+        std::cerr << "Error: File is empty: " << filename << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+// Process batch with parallel processing
+bool process_batch(const std::string& input_file, const std::string& output_dir,
+                   const fastqr::QROptions& options) {
+    // Read input file
+    std::vector<std::string> lines;
+    if (!read_batch_file(input_file, lines)) {
+        return false;
+    }
+
+    // Create output directory
+    if (!mkdir_p(output_dir)) {
+        std::cerr << "Error: Cannot create directory: " << output_dir << std::endl;
+        return false;
+    }
+
+    std::cout << "Processing " << lines.size() << " QR codes..." << std::endl;
+
+    int success_count = 0;
+    int fail_count = 0;
+
+    // Parallel processing with OpenMP
+    #pragma omp parallel for schedule(dynamic, 10) reduction(+:success_count,fail_count)
+    for (size_t i = 0; i < lines.size(); i++) {
+        // Generate output filename: 1.png, 2.png, ...
+        std::string output_path = output_dir;
+        if (output_path.back() != '/') {
+            output_path += '/';
+        }
+        output_path += std::to_string(i + 1) + ".png";
+
+        // Generate QR code (reusing single-QR generation - no overhead!)
+        if (fastqr::generate(lines[i], output_path, options)) {
+            success_count++;
+        } else {
+            fail_count++;
+            #pragma omp critical
+            {
+                std::cerr << "Error: Failed to generate QR " << (i + 1) << std::endl;
+            }
+        }
+    }
+
+    std::cout << "Done: " << success_count << " success, " << fail_count << " failed" << std::endl;
+
+    return fail_count == 0;
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         print_usage(argv[0]);
@@ -68,6 +178,7 @@ int main(int argc, char* argv[]) {
     fastqr::QROptions options;
     std::string data;
     std::string output_path;
+    std::string batch_file;  // For batch mode
 
     // Parse arguments
     for (int i = 1; i < argc; i++) {
@@ -148,6 +259,12 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Error: Quality must be between 1 and 100\n";
                 return 1;
             }
+        } else if (arg == "-F" || arg == "--file") {
+            if (++i >= argc) {
+                std::cerr << "Error: " << arg << " requires an argument\n";
+                return 1;
+            }
+            batch_file = argv[i];
         } else if (arg[0] == '-') {
             std::cerr << "Error: Unknown option: " << arg << std::endl;
             return 1;
@@ -164,20 +281,36 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Validate required arguments
-    if (data.empty() || output_path.empty()) {
-        std::cerr << "Error: Missing required arguments\n";
-        print_usage(argv[0]);
-        return 1;
+    // Batch mode vs single mode
+    if (!batch_file.empty()) {
+        // Batch mode: --file <input.txt> <output_dir>
+        if (data.empty()) {
+            std::cerr << "Error: Output directory required for batch mode\n";
+            print_usage(argv[0]);
+            return 1;
+        }
+
+        // In batch mode, first non-option arg is output_dir
+        std::string output_dir = data;
+
+        if (!process_batch(batch_file, output_dir, options)) {
+            return 1;
+        }
+    } else {
+        // Single mode: <data> <output_file>
+        if (data.empty() || output_path.empty()) {
+            std::cerr << "Error: Missing required arguments\n";
+            print_usage(argv[0]);
+            return 1;
+        }
+
+        // Generate single QR code (no overhead - same performance as before!)
+        if (!fastqr::generate(data, output_path, options)) {
+            std::cerr << "Error: Failed to generate QR code\n";
+            return 1;
+        }
     }
 
-    // Generate QR code
-    if (!fastqr::generate(data, output_path, options)) {
-        std::cerr << "Error: Failed to generate QR code\n";
-        return 1;
-    }
-
-    // Success - no output for performance
     return 0;
 }
 

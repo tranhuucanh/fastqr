@@ -201,5 +201,116 @@ class FastQR
         self::init();
         return self::$ffi->fastqr_version();
     }
+
+    /**
+     * Generate multiple QR codes in batch mode (7x faster!)
+     *
+     * @param array $dataArray Array of strings to encode
+     * @param string $outputDir Directory to save QR codes (will be created if it doesn't exist)
+     * @param array $options Generation options (same as generate)
+     * @return array Result with 'success' and 'failed' counts
+     *
+     * @throws RuntimeException if generation fails
+     *
+     * @example
+     * ```php
+     * use FastQR\FastQR;
+     *
+     * // Batch generation
+     * $data = ['QR 1', 'QR 2', 'QR 3'];
+     * FastQR::generateBatch($data, 'output_dir/', ['size' => 500]);
+     * // Creates: output_dir/1.png, output_dir/2.png, output_dir/3.png
+     * ```
+     */
+    public static function generateBatch(array $dataArray, string $outputDir, array $options = []): array
+    {
+        if (empty($dataArray)) {
+            throw new RuntimeException('Data array cannot be empty');
+        }
+        if (empty($outputDir)) {
+            throw new RuntimeException('Output directory cannot be empty');
+        }
+
+        // Create output directory
+        if (!is_dir($outputDir)) {
+            mkdir($outputDir, 0755, true);
+        }
+
+        // Create temporary batch file
+        $tempFile = tempnam(sys_get_temp_dir(), 'fastqr_batch_') . '.txt';
+        try {
+            file_put_contents($tempFile, implode("\n", $dataArray));
+
+            // Find CLI binary
+            $os = PHP_OS_FAMILY === 'Darwin' ? 'macos' : (PHP_OS_FAMILY === 'Linux' ? 'linux' : 'unknown');
+            $arch = php_uname('m');
+            if ($arch === 'x86_64' || $arch === 'amd64') {
+                $arch = 'x86_64';
+            } elseif ($arch === 'aarch64' || $arch === 'arm64') {
+                $arch = 'arm64';
+            }
+            $platform = "$os-$arch";
+
+            $cliPaths = [
+                __DIR__ . "/../../prebuilt/$platform/bin/fastqr",
+                '/usr/local/bin/fastqr',
+                __DIR__ . '/../../../build/fastqr',
+            ];
+
+            $cliPath = null;
+            foreach ($cliPaths as $path) {
+                if (file_exists($path)) {
+                    $cliPath = $path;
+                    break;
+                }
+            }
+
+            if ($cliPath === null) {
+                throw new RuntimeException("FastQR CLI not found for platform: $platform");
+            }
+
+            // Build command
+            $cmd = escapeshellarg($cliPath) . ' -F ' . escapeshellarg($tempFile) . ' ' . escapeshellarg($outputDir);
+
+            if (isset($options['size'])) {
+                $cmd .= ' -s ' . (int)$options['size'];
+            }
+            if (!empty($options['optimizeSize'])) {
+                $cmd .= ' -o';
+            }
+            if (isset($options['foreground'])) {
+                $fg = $options['foreground'];
+                $cmd .= ' -f ' . implode(',', $fg);
+            }
+            if (isset($options['background'])) {
+                $bg = $options['background'];
+                $cmd .= ' -b ' . implode(',', $bg);
+            }
+            if (isset($options['errorLevel'])) {
+                $cmd .= ' -e ' . escapeshellarg($options['errorLevel']);
+            }
+            if (isset($options['logo'])) {
+                $cmd .= ' -l ' . escapeshellarg($options['logo']);
+            }
+            if (isset($options['logoSize'])) {
+                $cmd .= ' -p ' . (int)$options['logoSize'];
+            }
+            if (isset($options['quality'])) {
+                $cmd .= ' -q ' . (int)$options['quality'];
+            }
+
+            exec($cmd . ' 2>&1', $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                throw new RuntimeException('Batch generation failed: ' . implode("\n", $output));
+            }
+
+            return ['success' => count($dataArray), 'failed' => 0];
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
 }
 

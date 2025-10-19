@@ -11,6 +11,7 @@ FastQR is a fast, powerful QR code generator with full UTF-8 support, custom col
 ## ✨ Features
 
 - 🚀 **High Performance**: No process forking
+- ⚡ **Batch Mode**: Generate 1000 QR codes in ~0.4s (7x faster than single mode!)
 - 🌐 **Full UTF-8 Support**: Vietnamese, Japanese (Kanji, Hiragana, Katakana), Chinese, emoji, etc.
 - 🎨 **Custom Colors**: Choose colors for QR code and background
 - 📐 **Exact Size**: Generate QR codes with precise pixel dimensions (e.g., 2000x2000px)
@@ -104,215 +105,51 @@ sudo make install
 
 See [INSTALL.md](INSTALL.md) for more installation options.
 
-## 🚀 Usage
+## 🚀 Quick Start
 
-### CLI Tool
-
+### CLI
 ```bash
-# Basic
 fastqr "Hello World" output.png
-
-# Custom size
-fastqr -s 500 "Large QR" large.png
-
-# Optimized size for best performance
-fastqr -s 500 -o "Fast QR" fast.png
-
-# Red QR code
-fastqr -s 400 -f 255,0,0 "Red QR" red.png
-
-# With logo
-fastqr -l logo.png -p 25 "Company" company_qr.png
-
-# Vietnamese
-fastqr "Xin chào Việt Nam! 🇻🇳" vietnamese.png
-
-# Japanese
-fastqr "こんにちは日本" japanese.png
-
-# High error correction
-fastqr -e H "Important Data" qr_high_ec.png
+fastqr -s 500 -f 255,0,0 "Red QR" red.png
+fastqr -F batch.txt output_dir/  # Batch mode - 7x faster!
 ```
 
-#### CLI Options
-
-```
-Options:
-  -s, --size SIZE         Output size in pixels (default: 300)
-  -o, --optimize          Auto round-up size for best performance
-  -f, --foreground R,G,B  QR code color (default: 0,0,0)
-  -b, --background R,G,B  Background color (default: 255,255,255)
-  -e, --error-level L|M|Q|H  Error correction level (default: M)
-  -l, --logo PATH         Path to logo image
-  -p, --logo-size N       Logo size percentage (default: 20)
-  -q, --quality N         Image quality 1-100 (default: 95)
-  -h, --help              Show help
-  -v, --version           Show version
-```
-
-### C++ API
-
-```cpp
-#include <fastqr.h>
-
-// Basic
-fastqr::QROptions options;
-fastqr::generate("Hello World", "output.png", options);
-
-// Custom
-fastqr::QROptions options;
-options.size = 500;
-options.foreground = {255, 0, 0};  // Red
-options.background = {255, 255, 200};  // Light yellow
-options.ec_level = fastqr::ErrorCorrectionLevel::HIGH;
-fastqr::generate("Custom QR", "custom.png", options);
-
-// Optimized size for best performance
-options.optimize_size = true;
-
-// With logo
-options.logo_path = "logo.png";
-options.logo_size_percent = 25;
-fastqr::generate("Company", "company.png", options);
-
-// UTF-8
-fastqr::generate("Xin chào! 🇻🇳", "vietnamese.png", options);
-fastqr::generate("こんにちは", "japanese.png", options);
-```
-
-### Ruby (Gem)
-
-Install:
+### Ruby
 ```bash
-gem install fastqr
-# No dependencies needed - pre-built binaries included! 🎉
+gem install fastqr  # Pre-built binaries included!
 ```
-
-Usage:
 ```ruby
 require 'fastqr'
-
-# Basic
-FastQR.generate("Hello World", "output.png")
-
-# Custom
-FastQR.generate("Custom QR", "custom.png",
-  size: 500,
-  foreground: [255, 0, 0],
-  background: [255, 255, 200],
-  error_level: 'H'
-)
-
-# Optimized size for best performance
-FastQR.generate("Fast QR", "fast.png",
-  size: 500,
-  optimize_size: true
-)
-
-# With logo
-FastQR.generate("Company", "company.png",
-  size: 600,
-  logo: "logo.png",
-  logo_size: 25
-)
-
-# UTF-8
-FastQR.generate("Xin chào Việt Nam! 🇻🇳", "vietnamese.png")
-FastQR.generate("こんにちは日本", "japanese.png")
+FastQR.generate("Hello", "qr.png", size: 500)
+FastQR.generate_batch(["QR 1", "QR 2"], "output/")  # Batch mode
 ```
 
-### Node.js (npm)
-
-Install:
+### Node.js
 ```bash
-npm install fastqr
-# No dependencies needed - pre-built binaries included! 🎉
+npm install fastqr  # Pre-built binaries included!
 ```
-
-Usage:
 ```javascript
 const fastqr = require('fastqr');
-
-// Basic
-fastqr.generate('Hello World', 'output.png');
-
-// Custom
-fastqr.generate('Custom QR', 'custom.png', {
-  size: 500,
-  foreground: [255, 0, 0],
-  background: [255, 255, 200],
-  errorLevel: 'H'
-});
-
-// Optimized size for best performance
-fastqr.generate('Fast QR', 'fast.png', {
-  size: 500,
-  optimizeSize: true
-});
-
-// With logo
-fastqr.generate('Company', 'company.png', {
-  size: 600,
-  logo: 'logo.png',
-  logoSize: 25
-});
-
-// UTF-8
-fastqr.generate('Xin chào Việt Nam! 🇻🇳', 'vietnamese.png');
-fastqr.generate('こんにちは日本', 'japanese.png');
+fastqr.generate('Hello', 'qr.png', { size: 500 });
+fastqr.generateBatch(['QR 1', 'QR 2'], 'output/');  // Batch mode
 ```
 
-TypeScript:
-
-```typescript
-import * as fastqr from 'fastqr';
-
-fastqr.generate('Hello TypeScript', 'output.png', {
-  size: 400,
-  foreground: [0, 0, 255]
-});
-```
-
-### PHP (Composer)
-
-Install:
+### PHP
 ```bash
-composer require fastqr/fastqr
-# No dependencies needed - pre-built binaries included! 🎉
+composer require fastqr/fastqr  # Pre-built binaries included!
+```
+```php
+use FastQR\FastQR;
+FastQR::generate('Hello', 'qr.png', ['size' => 500]);
+FastQR::generateBatch(['QR 1', 'QR 2'], 'output/');  // Batch mode
 ```
 
-Usage:
-```php
-<?php
-use FastQR\FastQR;
-
-// Basic
-FastQR::generate('Hello World', 'output.png');
-
-// Custom
-FastQR::generate('Custom QR', 'custom.png', [
-    'size' => 500,
-    'foreground' => [255, 0, 0],
-    'background' => [255, 255, 200],
-    'errorLevel' => 'H'
-]);
-
-// Optimized size for best performance
-FastQR::generate('Fast QR', 'fast.png', [
-    'size' => 500,
-    'optimizeSize' => true
-]);
-
-// With logo
-FastQR::generate('Company', 'company.png', [
-    'size' => 600,
-    'logo' => 'logo.png',
-    'logoSize' => 25
-]);
-
-// UTF-8
-FastQR::generate('Xin chào Việt Nam! 🇻🇳', 'vietnamese.png');
-FastQR::generate('こんにちは日本', 'japanese.png');
+### C++
+```cpp
+#include <fastqr.h>
+fastqr::QROptions options;
+options.size = 500;
+fastqr::generate("Hello", "qr.png", options);
 ```
 
 ## 📚 Documentation

@@ -52,25 +52,36 @@ fastqr -v
 
 ### Size (`-s`, `--size`)
 
-Specify exact output dimensions in pixels.
+Specify output size in pixels. QR codes are always square.
 
-**Format:** `WIDTHxHEIGHT`
+**Format:** `SIZE`
 
 ```bash
 # 500x500 pixels
-fastqr -s 500x500 "Large QR" large.png
+fastqr -s 500 "Large QR" large.png
 
 # 1000x1000 pixels
-fastqr -s 1000x1000 "Very Large" xl.png
+fastqr -s 1000 "Very Large" xl.png
 
 # 2000x2000 pixels (exact size!)
-fastqr -s 2000x2000 "Huge QR" huge.png
-
-# Non-square (300x500)
-fastqr -s 300x500 "Tall QR" tall.png
+fastqr -s 2000 "Huge QR" huge.png
 ```
 
-**Default:** `300x300`
+**Default:** `300` (300x300 pixels)
+
+### Optimize (`-o`, `--optimize`)
+
+Auto round-up size to nearest integer multiple of QR code module size for best performance.
+
+```bash
+# Optimized size (fastest generation)
+fastqr -s 500 -o "Fast QR" fast.png
+
+# Best for batch processing
+fastqr -F batch.txt output_dir/ -s 500 -o
+```
+
+**Note:** With `-o`, the actual output size may be slightly larger than requested (e.g., 500 → 493 or 506) to match QR code module alignment, resulting in sharper pixels and faster generation.
 
 ### Foreground Color (`-f`, `--foreground`)
 
@@ -231,6 +242,38 @@ fastqr -q 90 "JPG Quality" output.jpg
 
 **Note:** For PNG (lossless), quality setting has minimal effect.
 
+### Batch Mode (`-F`, `--file`)
+
+Process multiple QR codes at once - **7x faster** than calling fastqr multiple times!
+
+```bash
+# Create batch input file (one QR text per line)
+cat > batch.txt << EOF
+QR Code 1
+QR Code 2
+QR Code 3
+EOF
+
+# Generate batch
+fastqr -F batch.txt output_dir/
+
+# With options (applied to all QR codes)
+fastqr -F batch.txt output_dir/ -s 500 -o
+
+# With colors and logo
+fastqr -F batch.txt output_dir/ \
+       -s 600 \
+       -f 255,0,0 \
+       -e H \
+       -l logo.png
+```
+
+**Output:** Creates numbered files: `output_dir/1.png`, `output_dir/2.png`, `output_dir/3.png`, ...
+
+**Performance:**
+- 100 QR codes: ~0.05s (vs ~0.3s with 100 calls)
+- 1000 QR codes: ~0.4s (vs ~3s with 1000 calls)
+
 ## Output Formats
 
 FastQR automatically detects format from file extension:
@@ -279,12 +322,12 @@ fastqr "https://example.com" simple.png
 
 ### 2. Large QR Code
 ```bash
-fastqr -s 1000x1000 "https://example.com" large.png
+fastqr -s 1000 "https://example.com" large.png
 ```
 
 ### 3. Colored QR Code
 ```bash
-fastqr -s 500x500 \
+fastqr -s 500 \
        -f 0,100,200 \
        -b 240,248,255 \
        "Colored QR Code" \
@@ -293,7 +336,7 @@ fastqr -s 500x500 \
 
 ### 4. QR Code with Logo
 ```bash
-fastqr -s 800x800 \
+fastqr -s 800 \
        -e H \
        -l company_logo.png \
        -p 25 \
@@ -303,7 +346,7 @@ fastqr -s 800x800 \
 
 ### 5. Business Card QR
 ```bash
-fastqr -s 600x600 \
+fastqr -s 600 \
        -f 0,0,0 \
        -b 255,255,255 \
        -e H \
@@ -320,7 +363,7 @@ END:VCARD" \
 
 ### 6. WiFi QR Code
 ```bash
-fastqr -s 500x500 \
+fastqr -s 500 \
        -e H \
        "WIFI:T:WPA;S:NetworkName;P:password123;;" \
        wifi.png
@@ -328,7 +371,7 @@ fastqr -s 500x500 \
 
 ### 7. Vietnamese Event
 ```bash
-fastqr -s 700x700 \
+fastqr -s 700 \
        -f 255,0,0 \
        -b 255,255,200 \
        "Sự kiện: Hội thảo công nghệ
@@ -339,13 +382,26 @@ Thời gian: 20/10/2025
 
 ### 8. Maximum Quality Logo QR
 ```bash
-fastqr -s 2000x2000 \
+fastqr -s 2000 \
        -e H \
        -l logo_hires.png \
        -p 30 \
        -q 100 \
        "https://premium.com" \
        premium.png
+```
+
+### 9. Batch Generation (7x faster!)
+```bash
+# Create batch file
+cat > products.txt << EOF
+Product 001
+Product 002
+Product 003
+EOF
+
+# Generate 1000 QR codes in ~0.4s
+fastqr -F products.txt qr_codes/ -s 500 -o
 ```
 
 ## Tips and Best Practices
@@ -383,7 +439,8 @@ fastqr -s 2000x2000 \
 1. Increase error correction: `-e H`
 2. Reduce logo size: `-p 20` or remove logo
 3. Increase contrast (darker QR, lighter background)
-4. Increase size: `-s 800x800`
+4. Increase size: `-s 800`
+5. Use optimize flag for sharper pixels: `-o`
 
 ### File Size Too Large
 1. Use JPG format: `output.jpg`
