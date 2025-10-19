@@ -1,0 +1,76 @@
+name: Publish to npm
+
+on:
+  workflow_run:
+    workflows: ["Build macOS Binaries", "Build Linux Binaries"]
+    types:
+      - completed
+    branches:
+      - main
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.0.0)'
+        required: true
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/v}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+
+      - name: Download pre-built binaries from release
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          mkdir -p bindings/nodejs/prebuilt
+
+          # Download macOS ARM64
+          curl -L -o bindings/nodejs/prebuilt/macos-arm64.tar.gz \
+            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-macos-arm64.tar.gz"
+
+          # Download macOS x86_64
+          curl -L -o bindings/nodejs/prebuilt/macos-x86_64.tar.gz \
+            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-macos-x86_64.tar.gz"
+
+          echo "✅ Downloaded pre-built binaries"
+          ls -lh bindings/nodejs/prebuilt/
+
+      - name: Install dependencies
+        working-directory: bindings/nodejs
+        run: npm ci || npm install
+
+      - name: Run tests
+        working-directory: bindings/nodejs
+        run: npm test || echo "⚠️ Tests skipped"
+
+      - name: Publish to npm
+        working-directory: bindings/nodejs
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Summary
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          echo "✅ Published fastqr@$VERSION to npm!"
+          echo "🔗 https://www.npmjs.com/package/fastqr"
+

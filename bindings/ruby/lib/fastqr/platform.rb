@@ -1,51 +1,70 @@
 # frozen_string_literal: true
 
 module FastQR
+  # Platform detection and pre-built binary management
   module Platform
-    # Detect current platform
-    def self.os
-      @os ||= case RbConfig::CONFIG['host_os']
-      when /darwin/i then 'macos'
-      when /linux/i then 'linux'
-      when /mswin|mingw|cygwin/i then 'windows'
-      else 'unknown'
+    class << self
+      # Detects the current platform
+      # @return [String] Platform identifier (e.g., 'macos-arm64', 'linux-x86_64')
+      def detect
+        os = RbConfig::CONFIG['host_os']
+        arch = RbConfig::CONFIG['host_cpu']
+
+        case os
+        when /darwin/
+          case arch
+          when /arm64|aarch64/
+            'macos-arm64'
+          when /x86_64|x64/
+            'macos-x86_64'
+          else
+            raise "Unsupported macOS architecture: #{arch}"
+          end
+        when /linux/
+          case arch
+          when /x86_64|x64/
+            'linux-x86_64'
+          when /arm64|aarch64/
+            'linux-arm64'
+          else
+            raise "Unsupported Linux architecture: #{arch}"
+          end
+        else
+          raise "Unsupported platform: #{os}"
+        end
       end
-    end
 
-    # Detect CPU architecture
-    def self.arch
-      @arch ||= case RbConfig::CONFIG['host_cpu']
-      when /x86_64|x64|amd64/i then 'x86_64'
-      when /aarch64|arm64/i then 'arm64'
-      when /arm/i then 'arm'
-      else RbConfig::CONFIG['host_cpu']
+      # Extracts pre-built binary from tarball
+      # @param tarball_path [String] Path to the tarball
+      # @param dest_dir [String] Destination directory
+      def extract_binary(tarball_path, dest_dir)
+        FileUtils.mkdir_p(dest_dir)
+        system("tar -xzf '#{tarball_path}' -C '#{dest_dir}'") or raise "Failed to extract #{tarball_path}"
       end
-    end
 
-    # Get platform string (e.g., "macos-arm64")
-    def self.platform
-      "#{os}-#{arch}"
-    end
+      # Finds the fastqr binary
+      # @return [String] Path to fastqr binary
+      def find_binary
+        platform = detect
+        prebuilt_dir = File.expand_path("../../prebuilt/#{platform}", __dir__)
+        binary_path = File.join(prebuilt_dir, 'fastqr')
 
-    # Get library extension
-    def self.lib_ext
-      case os
-      when 'macos' then 'dylib'
-      when 'linux' then 'so'
-      when 'windows' then 'dll'
-      else 'so'
+        return binary_path if File.exist?(binary_path)
+
+        # Try to extract from tarball
+        tarball_path = File.expand_path("../../prebuilt/#{platform}.tar.gz", __dir__)
+        if File.exist?(tarball_path)
+          puts "Extracting pre-built binary from #{tarball_path}..."
+          extract_binary(tarball_path, prebuilt_dir)
+
+          if File.exist?(binary_path)
+            File.chmod(0755, binary_path)
+            return binary_path
+          end
+        end
+
+        raise "Pre-built binary not found for #{platform}"
       end
-    end
-
-    # Check if pre-built binary is available
-    def self.prebuilt_available?
-      File.exist?(lib_path)
-    end
-
-    # Get path to pre-built library
-    def self.lib_path
-      File.expand_path("../../prebuilt/#{platform}/lib/libfastqr.#{lib_ext}", __dir__)
     end
   end
 end
-

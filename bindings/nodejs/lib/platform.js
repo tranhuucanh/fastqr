@@ -1,102 +1,72 @@
-/**
- * Platform detection for FastQR
- */
-
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { execSync } = require('child_process');
 
 /**
- * Detect current platform
+ * Detects the current platform and architecture
+ * @returns {string} Platform identifier (e.g., 'macos-arm64', 'linux-x86_64')
  */
 function detectPlatform() {
   const platform = os.platform();
   const arch = os.arch();
 
-  let osName;
-  switch (platform) {
-    case 'darwin':
-      osName = 'macos';
-      break;
-    case 'linux':
-      osName = 'linux';
-      break;
-    case 'win32':
-      osName = 'windows';
-      break;
-    default:
-      osName = platform;
+  if (platform === 'darwin') {
+    if (arch === 'arm64') return 'macos-arm64';
+    if (arch === 'x64') return 'macos-x86_64';
+  } else if (platform === 'linux') {
+    if (arch === 'x64') return 'linux-x86_64';
+    if (arch === 'arm64') return 'linux-arm64';
   }
 
-  let archName;
-  switch (arch) {
-    case 'x64':
-      archName = 'x86_64';
-      break;
-    case 'arm64':
-      archName = 'arm64';
-      break;
-    default:
-      archName = arch;
-  }
-
-  return `${osName}-${archName}`;
+  throw new Error(`Unsupported platform: ${platform}-${arch}`);
 }
 
 /**
- * Get library extension for current platform
+ * Extracts pre-built binary from tarball
+ * @param {string} tarballPath - Path to the tarball
+ * @param {string} destDir - Destination directory
  */
-function getLibExtension() {
-  const platform = os.platform();
-  switch (platform) {
-    case 'darwin':
-      return 'dylib';
-    case 'linux':
-      return 'so';
-    case 'win32':
-      return 'dll';
-    default:
-      return 'so';
+function extractBinary(tarballPath, destDir) {
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
   }
+
+  execSync(`tar -xzf "${tarballPath}" -C "${destDir}"`, { stdio: 'inherit' });
 }
 
 /**
- * Get path to pre-built binary
+ * Finds the fastqr binary in prebuilt directory
+ * @returns {string} Path to fastqr binary
  */
-function getPrebuiltPath() {
+function findFastQRBinary() {
   const platform = detectPlatform();
-  const ext = getLibExtension();
-  return path.join(__dirname, '..', 'prebuilt', platform, 'lib', `libfastqr.${ext}`);
-}
+  const prebuiltDir = path.join(__dirname, '..', 'prebuilt', platform);
+  const binaryPath = path.join(prebuiltDir, 'fastqr');
 
-/**
- * Check if pre-built binary is available
- */
-function isPrebuiltAvailable() {
-  const prebuiltPath = getPrebuiltPath();
-  return fs.existsSync(prebuiltPath);
-}
+  if (fs.existsSync(binaryPath)) {
+    // Make sure it's executable
+    fs.chmodSync(binaryPath, 0o755);
+    return binaryPath;
+  }
 
-/**
- * Get path to compiled addon
- */
-function getAddonPath() {
-  return path.join(__dirname, '..', 'build', 'Release', 'fastqr.node');
-}
+  // Try to extract from tarball
+  const tarballPath = path.join(__dirname, '..', 'prebuilt', `${platform}.tar.gz`);
+  if (fs.existsSync(tarballPath)) {
+    console.log(`Extracting pre-built binary from ${tarballPath}...`);
+    extractBinary(tarballPath, prebuiltDir);
 
-/**
- * Check if compiled addon is available
- */
-function isAddonAvailable() {
-  return fs.existsSync(getAddonPath());
+    if (fs.existsSync(binaryPath)) {
+      fs.chmodSync(binaryPath, 0o755);
+      return binaryPath;
+    }
+  }
+
+  throw new Error(`Pre-built binary not found for ${platform}`);
 }
 
 module.exports = {
   detectPlatform,
-  getLibExtension,
-  getPrebuiltPath,
-  isPrebuiltAvailable,
-  getAddonPath,
-  isAddonAvailable
+  extractBinary,
+  findFastQRBinary
 };
-

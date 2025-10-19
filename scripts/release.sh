@@ -1,96 +1,76 @@
 #!/bin/bash
-# Release new version to GitHub
-# Usage:
-#   ./scripts/release.sh <version>           # Normal release
-#   ./scripts/release.sh <version> --force   # Force overwrite existing tag
+# Create and push a new release
 
 set -e
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <version> [--force]"
+    echo "Example: $0 1.0.1"
     echo ""
-    echo "Examples:"
-    echo "  $0 1.0.1           # Release new version"
-    echo "  $0 1.0.0 --force   # Force overwrite existing tag (after manual deletion on GitHub)"
+    echo "Options:"
+    echo "  --force    Force re-tag if tag already exists (use with caution!)"
     exit 1
 fi
 
-NEW_VERSION="$1"
-FORCE_FLAG="$2"
+VERSION="$1"
+FORCE_FLAG=""
 
-echo "🚀 FastQR Release Script"
-echo "========================"
-echo ""
-echo "📦 Target version: v$NEW_VERSION"
-
-# Check if version tag already exists
-if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
-    if [ "$FORCE_FLAG" != "--force" ]; then
-        echo ""
-        echo "❌ Error: Tag v$NEW_VERSION already exists!"
-        echo ""
-        echo "If you want to overwrite:"
-        echo "  1. Manually delete the tag and release on GitHub"
-        echo "  2. Run: $0 $NEW_VERSION --force"
-        exit 1
-    else
-        echo "⚠️  Force mode: Deleting existing local tag..."
-        git tag -d "v$NEW_VERSION" 2>/dev/null || true
-        echo "✅ Local tag deleted"
-    fi
+if [ "$2" = "--force" ]; then
+    FORCE_FLAG="--force"
+    echo "⚠️  Force mode enabled - will overwrite existing tag if present"
 fi
 
-# Check for uncommitted changes
-if ! git diff-index --quiet HEAD --; then
-    echo ""
-    echo "❌ Error: You have uncommitted changes!"
-    echo ""
-    echo "Please commit your changes first:"
-    echo "  git add ."
-    echo "  git commit -m 'Your commit message'"
+echo "🚀 Releasing FastQR v$VERSION..."
+echo ""
+
+# Check if we're on a clean working tree
+if [ -n "$(git status --porcelain)" ]; then
+    echo "❌ Working directory not clean. Please commit or stash changes first."
+    git status --short
     exit 1
 fi
 
 # Update version in all files
+echo "📝 Updating version strings..."
+./scripts/update-version.sh "$VERSION"
+
+# Show what changed
 echo ""
-echo "📝 Updating version in all files..."
-./scripts/update-version.sh "$NEW_VERSION"
+echo "📋 Changed files:"
+git diff --name-only
+echo ""
 
 # Commit version changes
-echo ""
-echo "💾 Committing version changes..."
-git add VERSION CMakeLists.txt fastqr.gemspec bindings/ composer.json README.md INSTALL.md docs/
-git commit -m "chore: bump version to v$NEW_VERSION" || echo "No changes to commit"
+echo "💾 Committing version update..."
+git add -A
+git commit -m "chore: bump version to $VERSION" || echo "Nothing to commit"
 
-# Create and push tag
-echo ""
-echo "🏷️  Creating tag v$NEW_VERSION..."
-git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
-
-echo ""
-echo "📤 Pushing to GitHub..."
-if [ "$FORCE_FLAG" == "--force" ]; then
-    git push origin master --force-with-lease
-    git push origin "v$NEW_VERSION" --force
-else
-    git push origin master
-    git push origin "v$NEW_VERSION"
+# Create tag
+echo "🏷️  Creating tag v$VERSION..."
+if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+    if [ -z "$FORCE_FLAG" ]; then
+        echo "❌ Tag v$VERSION already exists!"
+        echo "   Use --force to overwrite (not recommended for published versions)"
+        exit 1
+    else
+        echo "⚠️  Deleting existing tag v$VERSION..."
+        git tag -d "v$VERSION"
+    fi
 fi
 
-echo ""
-echo "✅ Release v$NEW_VERSION completed!"
-echo ""
-echo "GitHub Actions will now:"
-echo "  1. Build binaries for macOS (arm64 & x86_64) and Linux (x86_64 & arm64)"
-echo "  2. Create GitHub Release with binaries"
-echo "  3. Update Homebrew formula (version + sha256)"
-echo ""
-echo "Monitor progress:"
-echo "  https://github.com/tranhuucanh/fastqr/actions"
-echo ""
-echo "After Actions complete, users can install:"
-echo "  brew upgrade fastqr  # macOS"
-echo "  gem update fastqr    # Ruby"
-echo "  npm update fastqr    # Node.js"
-echo "  composer update fastqr/fastqr  # PHP"
+git tag -a "v$VERSION" -m "Release v$VERSION"
 
+# Push
+echo "📤 Pushing to GitHub..."
+git push origin main $FORCE_FLAG
+git push origin "v$VERSION" $FORCE_FLAG
+
+echo ""
+echo "✅ Release v$VERSION created successfully!"
+echo ""
+echo "📊 Next steps:"
+echo "1. Monitor GitHub Actions: https://github.com/tranhuucanh/fastqr/actions"
+echo "2. Check npm: https://www.npmjs.com/package/fastqr"
+echo "3. Check RubyGems: https://rubygems.org/gems/fastqr"
+echo "4. Check Packagist: https://packagist.org/packages/fastqr/fastqr"
+echo "5. Check Homebrew: brew upgrade fastqr"

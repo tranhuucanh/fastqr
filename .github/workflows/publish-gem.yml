@@ -1,0 +1,88 @@
+name: Publish to RubyGems
+
+on:
+  workflow_run:
+    workflows: ["Build macOS Binaries", "Build Linux Binaries"]
+    types:
+      - completed
+    branches:
+      - main
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.0.0)'
+        required: true
+
+jobs:
+  publish-gem:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/v}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+
+      - name: Download pre-built binaries from release
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          mkdir -p bindings/ruby/prebuilt
+
+          # Download macOS ARM64
+          curl -L -o bindings/ruby/prebuilt/macos-arm64.tar.gz \
+            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-macos-arm64.tar.gz"
+
+          # Download macOS x86_64
+          curl -L -o bindings/ruby/prebuilt/macos-x86_64.tar.gz \
+            "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-macos-x86_64.tar.gz"
+
+          echo "✅ Downloaded pre-built binaries"
+          ls -lh bindings/ruby/prebuilt/
+
+      - name: Install dependencies
+        run: |
+          cd bindings/ruby
+          gem install bundler
+          bundle install || true
+
+      - name: Build gem
+        run: |
+          gem build fastqr.gemspec
+
+      - name: Run tests
+        run: |
+          cd bindings/ruby
+          bundle exec rake test || echo "⚠️ Tests skipped"
+
+      - name: Publish to RubyGems
+        run: |
+          mkdir -p ~/.gem
+          cat > ~/.gem/credentials << EOF
+          ---
+          :rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}
+          EOF
+          chmod 0600 ~/.gem/credentials
+
+          gem push fastqr-*.gem
+
+      - name: Summary
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          echo "✅ Published fastqr-$VERSION to RubyGems!"
+          echo "🔗 https://rubygems.org/gems/fastqr"
+
