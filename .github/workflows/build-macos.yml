@@ -71,16 +71,27 @@ jobs:
         with:
           path: artifacts
 
+      - name: Create source tarball (stable hash)
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          git archive --format=tar.gz --prefix=fastqr-$VERSION/ HEAD > fastqr-$VERSION.tar.gz
+          echo "Created source tarball: fastqr-$VERSION.tar.gz"
+          shasum -a 256 fastqr-$VERSION.tar.gz
+
       - name: List artifacts
         run: |
           echo "Downloaded artifacts:"
           ls -R artifacts/
+          echo "Source tarball:"
+          ls -lh fastqr-*.tar.gz
 
       - name: Upload to Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/*/*.tar.gz
+          files: |
+            artifacts/*/*.tar.gz
+            fastqr-*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

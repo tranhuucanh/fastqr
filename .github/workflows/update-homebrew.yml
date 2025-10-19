@@ -29,8 +29,8 @@ jobs:
       - name: Download and hash source tarball
         id: source
         run: |
-          # Download source tarball from GitHub
-          curl -L -o source.tar.gz "https://github.com/tranhuucanh/fastqr/archive/refs/tags/v${{ steps.release.outputs.version }}.tar.gz"
+          # Download source tarball from GitHub Release (stable hash)
+          curl -L -o source.tar.gz "https://github.com/tranhuucanh/fastqr/releases/download/v${{ steps.release.outputs.version }}/fastqr-${{ steps.release.outputs.version }}.tar.gz"
           SHA256=$(shasum -a 256 source.tar.gz | cut -d' ' -f1)
           echo "sha256=$SHA256" >> $GITHUB_OUTPUT
           echo "🔐 Source SHA256: $SHA256"
@@ -53,8 +53,8 @@ jobs:
           # Update version
           sed -i "s/version \".*\"/version \"$VERSION\"/" Formula/fastqr.rb
 
-          # Update URL to source tarball
-          sed -i "s|url \".*\"|url \"https://github.com/tranhuucanh/fastqr/archive/refs/tags/v$VERSION.tar.gz\"|" Formula/fastqr.rb
+          # Update URL to source tarball from release asset
+          sed -i "s|url \".*\"|url \"https://github.com/tranhuucanh/fastqr/releases/download/v$VERSION/fastqr-$VERSION.tar.gz\"|" Formula/fastqr.rb
 
           # Update SHA256
           sed -i "s/sha256 \".*\"/sha256 \"$SHA256\"/" Formula/fastqr.rb
