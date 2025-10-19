@@ -1,14 +1,6 @@
 name: Publish to RubyGems
 
 on:
-  workflow_run:
-    workflows: ["Build macOS Binaries", "Build Linux Binaries"]
-    types:
-      - completed
-    branches:
-      - master
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       version:
