@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
 module FastQR
-  VERSION = "1.0.16"
+  VERSION = "1.0.17"
 end
 
