@@ -5,7 +5,7 @@ require 'rbconfig'
 def check_prebuilt_binary
   os = RbConfig::CONFIG['host_os']
   arch = RbConfig::CONFIG['host_cpu']
-  
+
   platform = case os
   when /darwin/
     case arch
@@ -28,28 +28,28 @@ def check_prebuilt_binary
   else
     nil
   end
-  
+
   return false unless platform
-  
+
   # When installed as gem, binaries are in bindings/ruby/prebuilt/
   # When running from repo, they're in ../../prebuilt/
   prebuilt_dir = File.expand_path("./prebuilt/#{platform}", __dir__)
   binary_path = File.join(prebuilt_dir, 'bin', 'fastqr')
-  
+
   if File.exist?(binary_path)
     puts "✅ Found pre-built binary at #{binary_path}"
     puts "⏭️  Skipping compilation"
-    
+
     # Create a dummy Makefile that does nothing
     File.open('Makefile', 'w') do |f|
       f.puts "all:\n\t@echo 'Using pre-built binary'\n"
       f.puts "install:\n\t@echo 'Using pre-built binary'\n"
       f.puts "clean:\n\t@echo 'Nothing to clean'\n"
     end
-    
+
     return true
   end
-  
+
   false
 end
 
