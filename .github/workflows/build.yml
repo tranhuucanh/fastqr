@@ -14,7 +14,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install cmake qrencode vips pkg-config
+        brew install cmake qrencode libpng pkg-config
 
     - name: Build
       run: |
@@ -35,7 +35,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake libqrencode-dev libvips-dev pkg-config
+        sudo apt-get install -y cmake libqrencode-dev libpng-dev pkg-config
 
     - name: Build
       run: |
@@ -61,7 +61,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libqrencode-dev libvips-dev
+        sudo apt-get install -y libqrencode-dev libpng-dev
         gem install bundler
 
     - name: Build gem
@@ -80,7 +80,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libqrencode-dev libvips-dev
+        sudo apt-get install -y libqrencode-dev libpng-dev
 
     - name: Build and test
       run: |
@@ -103,7 +103,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libqrencode-dev libvips-dev cmake
+        sudo apt-get install -y libqrencode-dev libpng-dev cmake
 
     - name: Build C++ library
       run: |

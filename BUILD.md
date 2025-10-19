@@ -1,6 +1,6 @@
 # Building FastQR from Source
 
-This guide explains how to build FastQR from source, including building with custom versions of libqrencode and libvips (as required by LGPL).
+This guide explains how to build FastQR from source, including building with custom versions of libqrencode (as required by LGPL).
 
 ## 📋 Requirements
 
@@ -13,7 +13,7 @@ This guide explains how to build FastQR from source, including building with cus
 ### Dependencies
 
 - **libqrencode** (version 4.0+)
-- **libvips** (version 8.10+)
+- **libpng**
 
 ## 🍎 macOS
 
@@ -21,7 +21,7 @@ This guide explains how to build FastQR from source, including building with cus
 
 ```bash
 # Using Homebrew
-brew install cmake qrencode vips pkg-config
+brew install cmake qrencode libpng pkg-config
 
 # Or build from source (see below)
 ```
@@ -72,29 +72,6 @@ make
 sudo make install
 ```
 
-### Build with Custom libvips
-
-```bash
-# Install libvips dependencies
-brew install glib libpng libjpeg libexif
-
-# Build libvips from source
-cd /tmp
-git clone https://github.com/libvips/libvips.git
-cd libvips
-./autogen.sh
-./configure --prefix=/usr/local
-make
-sudo make install
-
-# Build FastQR
-cd /path/to/fastqr
-mkdir build && cd build
-cmake .. -DCMAKE_PREFIX_PATH=/usr/local
-make
-sudo make install
-```
-
 ## 🐧 Ubuntu/Debian
 
 ### Install Dependencies
@@ -107,7 +84,7 @@ sudo apt-get install -y \
   cmake \
   pkg-config \
   libqrencode-dev \
-  libvips-dev \
+  libpng-dev \
   git
 ```
 
@@ -161,37 +138,6 @@ make
 sudo make install
 ```
 
-### Build with Custom libvips
-
-```bash
-# Install libvips dependencies
-sudo apt-get install -y \
-  libglib2.0-dev \
-  libexpat1-dev \
-  libjpeg-dev \
-  libpng-dev \
-  libwebp-dev \
-  libtiff-dev \
-  libexif-dev
-
-# Build libvips
-cd /tmp
-git clone https://github.com/libvips/libvips.git
-cd libvips
-./autogen.sh
-./configure --prefix=/usr/local
-make
-sudo make install
-sudo ldconfig
-
-# Build FastQR
-cd /path/to/fastqr
-mkdir build && cd build
-cmake .. -DCMAKE_PREFIX_PATH=/usr/local
-make
-sudo make install
-```
-
 ## 🪟 Windows (MSVC)
 
 ### Install Dependencies
@@ -212,7 +158,7 @@ cd vcpkg
 
 ```powershell
 .\vcpkg install qrencode:x64-windows
-.\vcpkg install vips:x64-windows
+.\vcpkg install libpng:x64-windows
 ```
 
 ### Build FastQR
@@ -365,15 +311,6 @@ pkg-config --modversion libqrencode
 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 ```
 
-### "vips.h not found"
-
-```bash
-# Make sure vips is installed
-pkg-config --modversion vips
-
-# If not found, install or add to PKG_CONFIG_PATH
-export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
-```
 
 ### "Library not found" at runtime
 
@@ -397,8 +334,8 @@ sudo ldconfig
 cmake .. \
   -DQRENCODE_INCLUDE_DIR=/usr/local/include \
   -DQRENCODE_LIBRARY=/usr/local/lib/libqrencode.a \
-  -DVIPS_INCLUDE_DIR=/usr/local/include \
-  -DVIPS_LIBRARY=/usr/local/lib/libvips.a
+  -DPNG_INCLUDE_DIR=/usr/local/include \
+  -DPNG_LIBRARY=/usr/local/lib/libpng.a
 ```
 
 ### Ruby gem fails to build
@@ -433,12 +370,11 @@ node-gyp build
 
 FastQR uses **LGPL 2.1** license and statically links with:
 - libqrencode (LGPL 2.1)
-- libvips (LGPL 2.1+)
 
 As required by LGPL, you can:
 
-1. **Replace the library**: Build FastQR with different versions of libqrencode/libvips using the instructions above
-2. **Modify the library**: Fork and modify libqrencode/libvips, then build FastQR against your modified versions
+1. **Replace the library**: Build FastQR with different versions of libqrencode using the instructions above
+2. **Modify the library**: Fork and modify libqrencode, then build FastQR against your modified versions
 3. **Link dynamically**: Use `-DBUILD_SHARED_LIBS=ON` to build shared library instead of static
 
 ### Example: Using Modified libqrencode
@@ -477,6 +413,6 @@ If you encounter issues:
 
 - [CMake Documentation](https://cmake.org/documentation/)
 - [libqrencode](https://github.com/fukuchi/libqrencode)
-- [libvips](https://github.com/libvips/libvips)
+- [libpng](http://www.libpng.org/pub/png/libpng.html)
 - [LGPL v2.1 License](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
 

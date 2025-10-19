@@ -31,9 +31,7 @@ Copyright (C) 2025 FastQR Project
 
 This project statically links with:
 - libqrencode (LGPL v2.1) - Copyright (C) 2006-2017 Kentaro Fukuchi
-- libvips (LGPL v2.1+) - Copyright (C) 1989-2021 Imperial College, London
 
 As required by the LGPL, you can obtain the source code and rebuild this
-library with modified versions of libqrencode and libvips. See BUILD.md
-for instructions.
+library with modified versions of libqrencode. See BUILD.md for instructions.
 

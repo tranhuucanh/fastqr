@@ -49,16 +49,16 @@ if ! pkg-config --exists libqrencode; then
 fi
 echo "✅ libqrencode found: $(pkg-config --modversion libqrencode)"
 
-if ! pkg-config --exists vips; then
-    echo "❌ libvips not found. Install with:"
+if ! pkg-config --exists libpng; then
+    echo "❌ libpng not found. Install with:"
     if [[ "$OS" == "macos" ]]; then
-        echo "   brew install vips"
+        echo "   brew install libpng"
     else
-        echo "   sudo apt-get install libvips-dev"
+        echo "   sudo apt-get install libpng-dev"
     fi
     exit 1
 fi
-echo "✅ libvips found: $(pkg-config --modversion vips)"
+echo "✅ libpng found: $(pkg-config --modversion libpng)"
 
 # Build
 echo ""

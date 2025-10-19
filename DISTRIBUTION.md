@@ -41,7 +41,7 @@ class Fastqr < Formula
 
   depends_on "cmake" => :build
   depends_on "qrencode"
-  depends_on "vips"
+  depends_on "libpng"
 
   def install
     system "cmake", "-S", ".", "-B", "build", *std_cmake_args
@@ -97,7 +97,7 @@ brew tap tranhuucanh/fastqr
 brew install fastqr
 ```
 
-**Note**: Homebrew automatically installs dependencies (qrencode and vips), so users don't need to install them manually.
+**Note**: Homebrew automatically installs dependencies (qrencode and libpng), so users don't need to install them manually.
 
 ---
 
@@ -125,13 +125,13 @@ Source: fastqr
 Section: utils
 Priority: optional
 Maintainer: Your Name <your.email@example.com>
-Build-Depends: debhelper (>= 10), cmake, libqrencode-dev, libvips-dev
+Build-Depends: debhelper (>= 10), cmake, libqrencode-dev, libpng-dev
 Standards-Version: 4.1.3
 Homepage: https://github.com/tranhuucanh/fastqr
 
 Package: fastqr
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libqrencode4, libvips42
+Depends: ${shlibs:Depends}, ${misc:Depends}, libqrencode4, libpng16-16
 Description: Fast QR code generator with UTF-8 support
  FastQR is a fast QR code generator with full UTF-8 support,
  custom colors, logo embedding, and precise size control.
@@ -233,7 +233,7 @@ ruby -r fastqr -e "puts FastQR.version"
 gem uninstall fastqr
 ```
 
-**Important**: The gem now includes pre-built binaries, so users don't need to install libqrencode or libvips separately!
+**Important**: The gem now includes pre-built binaries, so users don't need to install libqrencode separately!
 
 ### Step 3: Create RubyGems Account
 
@@ -259,7 +259,7 @@ gem push fastqr-1.0.0.gem
 # Users can now install with just:
 gem install fastqr
 
-# No need to install qrencode or vips!
+# No need to install qrencode!
 
 # Or via Gemfile:
 # gem 'fastqr', '~> 1.0'
@@ -312,7 +312,7 @@ npm pack
 npm install fastqr-pro-1.0.0.tgz
 ```
 
-**Important**: The npm package now includes pre-built binaries, so users don't need to install libqrencode or libvips separately!
+**Important**: The npm package now includes pre-built binaries, so users don't need to install libqrencode separately!
 
 ### Step 3: Create npm Account
 
@@ -343,7 +343,7 @@ npm publish
 # Users can now install with just:
 npm install fastqr-pro
 
-# No need to install qrencode or vips!
+# No need to install qrencode!
 
 # Or via package.json:
 # "dependencies": {
@@ -409,7 +409,7 @@ File `composer.json` is already prepared at root. Review it:
 3. Click "Check"
 4. If valid, click "Submit"
 
-**Important**: The composer package now includes pre-built binaries in the repository (via GitHub Actions), so users don't need to install libqrencode or libvips separately!
+**Important**: The composer package now includes pre-built binaries in the repository (via GitHub Actions), so users don't need to install libqrencode separately!
 
 ### Step 4: Setup Auto-Update (Recommended)
 
@@ -447,7 +447,7 @@ git push origin v1.0.0
 # Users can now install with just:
 composer require fastqr/fastqr
 
-# No need to install qrencode or vips!
+# No need to install qrencode!
 
 # Or via composer.json:
 # "require": {
@@ -725,6 +725,6 @@ The binaries are built automatically by GitHub Actions on every tagged release.
 1. Include LICENSE file
 2. Include link to source code
 3. Include BUILD.md with build instructions
-4. State that the package uses libqrencode and libvips
+4. State that the package uses libqrencode
 
 This ensures LGPL requirements are met for static linking.

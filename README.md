@@ -41,7 +41,7 @@ FastQR is a fast, powerful QR code generator with full UTF-8 support, custom col
 
 FastQR is built on:
 
-- **[libqrencode](https://fukuchi.org/works/qrencode/)** (LGPL v2.1) - QR code generation
+- **[libqrencode](https://fukuchi.org/works/qrencode/)** (LGPL v2.1) - QR code bit matrix generator
 - **[libpng](http://www.libpng.org/pub/png/libpng.html)** - Fast PNG encoding
 - **[stb_image](https://github.com/nothings/stb)** (Public Domain) - Logo image loading
 

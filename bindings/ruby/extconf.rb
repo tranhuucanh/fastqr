@@ -64,8 +64,8 @@ unless have_library('qrencode')
   abort "ERROR: libqrencode is required. Install it first."
 end
 
-unless have_library('vips')
-  abort "ERROR: libvips is required. Install it first."
+unless have_library('png')
+  abort "ERROR: libpng is required. Install it first."
 end
 
 # Check for headers
@@ -73,8 +73,8 @@ unless have_header('qrencode.h')
   abort "ERROR: qrencode.h not found"
 end
 
-unless have_header('vips/vips.h')
-  abort "ERROR: vips/vips.h not found"
+unless have_header('png.h')
+  abort "ERROR: png.h not found"
 end
 
 # Add C++14 support

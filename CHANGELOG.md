@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release of FastQR
-- Core C++ library with libqrencode and libvips integration
+- Core C++ library with libqrencode and libpng integration
 - Full UTF-8 support (Vietnamese, Japanese, Chinese, emoji, etc.)
 - Custom color support for QR code and background
 - Precise size control (exact pixel dimensions)

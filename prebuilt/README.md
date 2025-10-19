@@ -48,7 +48,7 @@ Pre-built binaries are automatically included in the gem and loaded via FFI.
 
 ```bash
 gem install fastqr
-# No need to install qrencode or vips!
+# No need to install qrencode!
 ```
 
 ### For Node.js
@@ -57,7 +57,7 @@ Pre-built binaries are automatically included in the npm package.
 
 ```bash
 npm install fastqr-pro
-# No need to install qrencode or vips!
+# No need to install qrencode!
 ```
 
 ### For PHP
@@ -66,7 +66,7 @@ Pre-built binaries are included in the Composer package.
 
 ```bash
 composer require fastqr/fastqr
-# No need to install qrencode or vips!
+# No need to install qrencode!
 ```
 
 ### Manual Installation
@@ -105,7 +105,7 @@ The bindings automatically detect your platform and load the appropriate binary:
 
 ## Notes
 
-- Binaries are built with static linking of libqrencode and libvips
+- Binaries are built with static linking of libqrencode
 - No external dependencies required at runtime
 - Binaries are built on GitHub Actions for consistency
 - All binaries are tested before release
@@ -125,7 +125,6 @@ This will trigger the `build-binaries.yml` workflow which builds for all platfor
 
 The pre-built binaries include statically linked libraries:
 - libqrencode (LGPL 2.1)
-- libvips (LGPL 2.1+)
 
 As required by LGPL, users can rebuild with different versions. See BUILD.md for instructions.
 

@@ -39,13 +39,13 @@ composer require fastqr/fastqr
 - C++14 compatible compiler
 - CMake 3.15+
 - libqrencode 4.0+
-- libvips 8.10+
+- libpng
 
 ### macOS
 
 ```bash
 # Install dependencies
-brew install cmake qrencode vips
+brew install cmake qrencode libpng
 
 # Clone and build
 git clone https://github.com/tranhuucanh/fastqr.git
@@ -62,7 +62,7 @@ sudo make install
 ```bash
 # Install dependencies
 sudo apt-get update
-sudo apt-get install -y cmake libqrencode-dev libvips-dev build-essential
+sudo apt-get install -y cmake libqrencode-dev libpng-dev build-essential
 
 # Clone and build
 git clone https://github.com/tranhuucanh/fastqr.git

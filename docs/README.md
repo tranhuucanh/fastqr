@@ -43,7 +43,7 @@ Starting from v1.0.0, all language packages include pre-built binaries:
 - Node.js: `npm install fastqr-pro` ✅
 - PHP: `composer require fastqr/fastqr` ✅
 
-No need to install libqrencode or libvips separately!
+No need to install libqrencode separately!
 
 ## Quick Start
 
@@ -160,7 +160,8 @@ fastqr -s 2000x2000 -q 100 -e H "SKU-12345" product_qr.png
 
 FastQR is built on:
 - **[libqrencode](https://fukuchi.org/works/qrencode/)** (LGPL v2.1) - QR code generation
-- **[libvips](https://libvips.github.io/libvips/)** (LGPL v2.1+) - Image processing
+- **[libpng](http://www.libpng.org/pub/png/libpng.html)** - PNG image encoding
+- **[stb_image](https://github.com/nothings/stb)** (Public Domain) - Image loading
 
 Pre-built binaries are automatically generated for:
 - macOS (Intel & Apple Silicon)

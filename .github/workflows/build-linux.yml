@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libvips-dev pkg-config build-essential wget autoconf automake libtool
+          sudo apt-get install -y cmake libpng-dev pkg-config build-essential wget autoconf automake libtool
 
           # Build libqrencode from source (for static library)
           cd /tmp
@@ -61,7 +61,7 @@ jobs:
             arm64v8/ubuntu:22.04 \
             bash -c "
               apt-get update && \
-              apt-get install -y cmake libvips-dev pkg-config build-essential wget autoconf automake libtool && \
+              apt-get install -y cmake libpng-dev pkg-config build-essential wget autoconf automake libtool && \
 
               # Build libqrencode from source (for static library)
               cd /tmp && \

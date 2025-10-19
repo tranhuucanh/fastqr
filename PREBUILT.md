@@ -4,7 +4,7 @@ This document describes how pre-built binaries are generated and distributed for
 
 ## Overview
 
-Starting from v1.0.0, FastQR includes pre-built binaries in all language packages (Ruby, Node.js, PHP). This means users can install packages without needing to install system dependencies (libqrencode, libvips).
+Starting from v1.0.0, FastQR includes pre-built binaries in all language packages (Ruby, Node.js, PHP). This means users can install packages without needing to install system dependencies (libqrencode).
 
 ## Supported Platforms
 
@@ -153,7 +153,7 @@ platform/
 
 ## License Compliance
 
-Pre-built binaries statically link libqrencode and libvips (both LGPL 2.1).
+Pre-built binaries statically link libqrencode (LGPL 2.1).
 
 To comply with LGPL:
 1. LICENSE file is included in all packages
