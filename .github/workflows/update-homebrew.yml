@@ -1,21 +1,30 @@
 name: Update Homebrew Formula
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ["Build macOS Binaries"]
+    types:
+      - completed
 
 jobs:
   update-formula:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Get release info
+      - name: Checkout fastqr repo
+        uses: actions/checkout@v3
+        with:
+          repository: tranhuucanh/fastqr
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Get version from tag
         id: release
         run: |
-          # Get version from release tag (e.g., v1.0.1 → 1.0.1)
-          VERSION="${{ github.event.release.tag_name }}"
-          VERSION="${VERSION#v}"
+          # Get version from tag
+          git fetch --tags
+          VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
+          echo "📦 Version: $VERSION"
 
       - name: Download and hash source tarball
         id: source
@@ -24,7 +33,7 @@ jobs:
           curl -L -o source.tar.gz "https://github.com/tranhuucanh/fastqr/archive/refs/tags/v${{ steps.release.outputs.version }}.tar.gz"
           SHA256=$(shasum -a 256 source.tar.gz | cut -d' ' -f1)
           echo "sha256=$SHA256" >> $GITHUB_OUTPUT
-          echo "Source SHA256: $SHA256"
+          echo "🔐 Source SHA256: $SHA256"
 
       - name: Checkout homebrew-fastqr repo
         uses: actions/checkout@v3
@@ -39,7 +48,7 @@ jobs:
           VERSION="${{ steps.release.outputs.version }}"
           SHA256="${{ steps.source.outputs.sha256 }}"
 
-          echo "Updating formula to version $VERSION with SHA256 $SHA256"
+          echo "🔄 Updating formula to version $VERSION"
 
           # Update version
           sed -i "s/version \".*\"/version \"$VERSION\"/" Formula/fastqr.rb
@@ -50,7 +59,7 @@ jobs:
           # Update SHA256
           sed -i "s/sha256 \".*\"/sha256 \"$SHA256\"/" Formula/fastqr.rb
 
-          echo "Formula updated:"
+          echo "✅ Formula updated:"
           cat Formula/fastqr.rb
 
       - name: Commit and push
@@ -62,3 +71,4 @@ jobs:
           git add Formula/fastqr.rb
           git commit -m "chore: update to v${{ steps.release.outputs.version }}"
           git push
+
