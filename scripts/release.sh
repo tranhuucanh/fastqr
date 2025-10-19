@@ -62,7 +62,9 @@ git tag -a "v$VERSION" -m "Release v$VERSION"
 
 # Push
 echo "📤 Pushing to GitHub..."
-git push origin main $FORCE_FLAG
+# Detect current branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+git push origin "$CURRENT_BRANCH" $FORCE_FLAG
 git push origin "v$VERSION" $FORCE_FLAG
 
 echo ""
