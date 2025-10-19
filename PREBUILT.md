@@ -61,7 +61,7 @@ platform.getPrebuiltPath() // => Path to pre-built binary
 **npm Package:**
 - Pre-built binaries are included in `bindings/nodejs/prebuilt/`
 - Package is published to npm
-- Users: `npm install fastqr` (no dependencies needed!)
+- Users: `npm install fastqr-pro` (no dependencies needed!)
 
 **Composer Package:**
 - Pre-built binaries are committed to repository in `bindings/php/prebuilt/`

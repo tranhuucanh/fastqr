@@ -22,7 +22,7 @@ gem install fastqr
 
 **Node.js (npm):**
 ```bash
-npm install fastqr
+npm install fastqr-pro
 ```
 
 **PHP (Composer):**

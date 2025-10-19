@@ -2,6 +2,10 @@
 
 [![License](https://img.shields.io/badge/License-LGPL%202.1-blue.svg)](LICENSE)
 [![C++](https://img.shields.io/badge/C++-14-blue.svg)](https://isocpp.org/)
+[![C](https://img.shields.io/badge/C-11-blue.svg)](https://en.wikipedia.org/wiki/C11_(C_standard_revision))
+[![CMake](https://img.shields.io/badge/CMake-3.10+-064F8C.svg)](https://cmake.org/)
+[![Shell](https://img.shields.io/badge/Shell-Bash-4EAA25.svg)](https://www.gnu.org/software/bash/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E.svg)](https://www.ecma-international.org/ecma-262/)
 [![Ruby](https://img.shields.io/badge/Ruby-Gem-red.svg)](https://rubygems.org/gems/fastqr)
 [![Node.js](https://img.shields.io/badge/Node.js-npm-green.svg)](https://www.npmjs.com/package/fastqr)
 [![PHP](https://img.shields.io/badge/PHP-Composer-blue.svg)](https://packagist.org/packages/fastqr/fastqr)
@@ -68,7 +72,7 @@ gem install fastqr
 
 **Node.js:**
 ```bash
-npm install fastqr
+npm install fastqr-pro
 # No system dependencies needed! 🎉
 ```
 
@@ -126,7 +130,7 @@ FastQR.generate_batch(["QR 1", "QR 2"], "output/")  # Batch mode
 
 ### Node.js
 ```bash
-npm install fastqr  # Pre-built binaries included!
+npm install fastqr-pro  # Pre-built binaries included!
 ```
 ```javascript
 const fastqr = require('fastqr');

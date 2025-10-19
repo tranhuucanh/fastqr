@@ -56,7 +56,7 @@ gem install fastqr
 Pre-built binaries are automatically included in the npm package.
 
 ```bash
-npm install fastqr
+npm install fastqr-pro
 # No need to install qrencode or vips!
 ```
 

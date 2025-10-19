@@ -40,7 +40,7 @@ FastQR is a fast, powerful QR code generator with full UTF-8 support, custom col
 ### 📦 No Dependencies!
 Starting from v1.0.0, all language packages include pre-built binaries:
 - Ruby: `gem install fastqr` ✅
-- Node.js: `npm install fastqr` ✅
+- Node.js: `npm install fastqr-pro` ✅
 - PHP: `composer require fastqr/fastqr` ✅
 
 No need to install libqrencode or libvips separately!
@@ -69,7 +69,7 @@ FastQR.generate("Hello World", "qr.png", width: 500, height: 500)
 
 ### Node.js
 ```javascript
-npm install fastqr
+npm install fastqr-pro
 
 const fastqr = require('fastqr');
 fastqr.generate('Hello World', 'qr.png', { width: 500, height: 500 });

@@ -5,13 +5,13 @@ Complete guide for using FastQR in Node.js and JavaScript applications.
 ## Installation
 
 ```bash
-npm install fastqr
+npm install fastqr-pro
 ```
 
 Or with Yarn:
 
 ```bash
-yarn add fastqr
+yarn add fastqr-pro
 ```
 
 **Note:** No system dependencies required! Pre-built binaries are included. 🎉

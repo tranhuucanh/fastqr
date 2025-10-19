@@ -309,7 +309,7 @@ node test/test.js
 
 # Test installation from tarball
 npm pack
-npm install fastqr-1.0.0.tgz
+npm install fastqr-pro-1.0.0.tgz
 ```
 
 **Important**: The npm package now includes pre-built binaries, so users don't need to install libqrencode or libvips separately!
@@ -341,7 +341,7 @@ npm publish
 
 ```bash
 # Users can now install with just:
-npm install fastqr
+npm install fastqr-pro
 
 # No need to install qrencode or vips!
 
@@ -713,7 +713,7 @@ These binaries are automatically bundled in:
 
 **This means users can install with just:**
 - `gem install fastqr` - no system dependencies needed!
-- `npm install fastqr` - no system dependencies needed!
+- `npm install fastqr-pro` - no system dependencies needed!
 - `composer require fastqr/fastqr` - no system dependencies needed!
 
 The binaries are built automatically by GitHub Actions on every tagged release.
