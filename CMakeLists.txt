@@ -20,7 +20,9 @@ option(FASTQR_BUILD_BINDINGS "Build language bindings" ON)
 
 # Find dependencies
 find_package(PkgConfig REQUIRED)
-find_package(PNG REQUIRED)
+
+# Find libpng via pkg-config (more reliable than find_package)
+pkg_check_modules(PNG REQUIRED libpng)
 
 # Find libqrencode
 pkg_check_modules(QRENCODE REQUIRED libqrencode)
@@ -66,7 +68,7 @@ target_link_directories(fastqr
 target_link_libraries(fastqr
     PRIVATE
         ${QRENCODE_LIBRARIES}
-        PNG::PNG
+        ${PNG_LIBRARIES}
 )
 
 # Set library output name
@@ -83,12 +85,15 @@ add_executable(fastqr-cli
 
 # For standalone CLI binary, link with object library and static dependencies
 if(NOT BUILD_SHARED_LIBS)
+    # Add PNG library directories to search path
+    link_directories(${PNG_LIBRARY_DIRS})
+    
     # Find static versions of libraries
-    find_library(PNG_STATIC_LIBRARY
+    find_library(PNG_STATIC_LIBRARY 
         NAMES libpng.a libpng16.a
-        PATHS
+        PATHS 
             ${PNG_LIBRARY_DIRS}
-            /usr/local/lib
+            /usr/local/lib 
             /opt/homebrew/lib
             /usr/lib
         NO_DEFAULT_PATH
