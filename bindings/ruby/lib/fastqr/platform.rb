@@ -25,7 +25,7 @@ module FastQR
           when /x86_64|x64/
             'linux-x86_64'
           when /arm64|aarch64/
-            'linux-arm64'
+            'linux-aarch64'
           else
             raise "Unsupported Linux architecture: #{arch}"
           end

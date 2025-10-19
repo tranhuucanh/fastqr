@@ -64,7 +64,7 @@ jobs:
 
           # Download Linux ARM64 (aarch64)
           echo "📥 Downloading Linux ARM64 binary..."
-          curl -L -o bindings/nodejs/prebuilt/linux-arm64.tar.gz \
+          curl -L -o bindings/nodejs/prebuilt/linux-aarch64.tar.gz \
             "https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-linux-aarch64.tar.gz"
 
           # Extract binaries
@@ -73,15 +73,18 @@ jobs:
           tar -xzf macos-arm64.tar.gz
           tar -xzf macos-x86_64.tar.gz
           tar -xzf linux-x86_64.tar.gz
-          tar -xzf linux-arm64.tar.gz
+          tar -xzf linux-aarch64.tar.gz
 
           echo "✅ Downloaded and extracted pre-built binaries"
           echo "Binary details (macOS):"
           file macos-arm64/bin/fastqr
           otool -L macos-arm64/bin/fastqr || true
-          echo "Binary details (Linux):"
+          echo "Binary details (Linux x86_64):"
           file linux-x86_64/bin/fastqr
           ldd linux-x86_64/bin/fastqr || true
+          echo "Binary details (Linux aarch64):"
+          file linux-aarch64/bin/fastqr
+          ldd linux-aarch64/bin/fastqr || true
           echo "All binaries:"
           ls -lR
 

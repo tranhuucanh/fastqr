@@ -16,7 +16,7 @@ function detectPlatform() {
     if (arch === 'x64') return 'macos-x86_64';
   } else if (platform === 'linux') {
     if (arch === 'x64') return 'linux-x86_64';
-    if (arch === 'arm64') return 'linux-arm64';
+    if (arch === 'arm64') return 'linux-aarch64';
   }
 
   throw new Error(`Unsupported platform: ${platform}-${arch}`);
