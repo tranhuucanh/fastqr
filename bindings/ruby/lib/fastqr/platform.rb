@@ -34,6 +34,30 @@ module FastQR
         end
       end
 
+      # Check if pre-built binary is available
+      # @return [Boolean] true if binary exists
+      def prebuilt_available?
+        binary_path = find_binary
+        binary_path && File.exist?(binary_path)
+      rescue StandardError
+        false
+      end
+
+      # Get path to the library file
+      # @return [String] Path to libfastqr.dylib or libfastqr.so
+      def lib_path
+        platform = detect
+        base_dir = File.expand_path('../../prebuilt', __dir__)
+        lib_file = platform.start_with?('macos') ? 'libfastqr.dylib' : 'libfastqr.so'
+        File.join(base_dir, platform, 'lib', lib_file)
+      end
+
+      # Get binary name
+      # @return [String] 'fastqr'
+      def binary_name
+        'fastqr'
+      end
+
       # Extracts pre-built binary from tarball
       # @param tarball_path [String] Path to the tarball
       # @param dest_dir [String] Destination directory
@@ -46,16 +70,16 @@ module FastQR
       # @return [String] Path to fastqr binary
       def find_binary
         platform = detect
-        prebuilt_dir = File.expand_path("../../prebuilt/#{platform}", __dir__)
-        binary_path = File.join(prebuilt_dir, 'fastqr')
+        base_dir = File.expand_path('../../prebuilt', __dir__)
+        binary_path = File.join(base_dir, platform, 'bin', 'fastqr')
 
         return binary_path if File.exist?(binary_path)
 
         # Try to extract from tarball
-        tarball_path = File.expand_path("../../prebuilt/#{platform}.tar.gz", __dir__)
+        tarball_path = File.join(base_dir, "#{platform}.tar.gz")
         if File.exist?(tarball_path)
           puts "Extracting pre-built binary from #{tarball_path}..."
-          extract_binary(tarball_path, prebuilt_dir)
+          extract_binary(tarball_path, File.join(base_dir, platform))
 
           if File.exist?(binary_path)
             File.chmod(0755, binary_path)
