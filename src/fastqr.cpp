@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <cstdio>
 
-#define FASTQR_VERSION "1.0.21"
+#define FASTQR_VERSION "1.0.22"
 
 namespace fastqr {
 
