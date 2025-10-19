@@ -20,10 +20,6 @@
 #include <vector>
 #include <algorithm>
 #include <cstdio>
-#include <chrono>
-
-// Enable benchmarking
-// #define FASTQR_BENCHMARK
 
 #define FASTQR_VERSION "1.0.21"
 
@@ -343,20 +339,11 @@ static void add_logo_to_image(std::vector<unsigned char>& qr_img, int qr_size, i
 }
 
 bool generate(const std::string& data, const std::string& output_path, const QROptions& options) {
-#ifdef FASTQR_BENCHMARK
-    auto t_start = std::chrono::high_resolution_clock::now();
-#endif
-
     // Generate QR code
     auto qr = generate_qr_code(data, options.ec_level);
     if (!qr) {
         return false;
     }
-
-#ifdef FASTQR_BENCHMARK
-    auto t_qr_gen = std::chrono::high_resolution_clock::now();
-    auto dur_qr = std::chrono::duration_cast<std::chrono::microseconds>(t_qr_gen - t_start).count();
-#endif
 
     int qr_size = qr->width;
     unsigned char* qr_data = qr->data;
@@ -380,15 +367,6 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
         // FASTEST PATH: 1-bit indexed PNG (like qrencode)
         // Pack 8 pixels into 1 byte
         int scale = final_size / qr_size;
-
-#ifdef FASTQR_BENCHMARK
-        FILE* debug_log = fopen("/tmp/fastqr_debug.log", "a");
-        if (debug_log) {
-            fprintf(debug_log, "DEBUG: is_bw=%d, qr_size=%d, final_size=%d, scale=%d, scale*qr=%d\n",
-                   is_bw, qr_size, final_size, scale, scale*qr_size);
-            fclose(debug_log);
-        }
-#endif
 
         if (scale * qr_size == final_size) {
             // Integer scaling - optimized bit packing
@@ -424,27 +402,7 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
                 }
             }
 
-#ifdef FASTQR_BENCHMARK
-            auto t_scale = std::chrono::high_resolution_clock::now();
-            auto dur_scale = std::chrono::duration_cast<std::chrono::microseconds>(t_scale - t_qr_gen).count();
-#endif
-
-            bool result = write_indexed_png(output_path.c_str(), packed_data, final_size, final_size);
-
-#ifdef FASTQR_BENCHMARK
-            auto t_write = std::chrono::high_resolution_clock::now();
-            auto dur_write = std::chrono::duration_cast<std::chrono::microseconds>(t_write - t_scale).count();
-            auto dur_total = std::chrono::duration_cast<std::chrono::microseconds>(t_write - t_start).count();
-
-            FILE* timing_log = fopen("/tmp/fastqr_timing.log", "a");
-            if (timing_log) {
-                fprintf(timing_log, "TIMING: QR=%ldus, Scale=%ldus, Write=%ldus, Total=%ldus\n",
-                       dur_qr, dur_scale, dur_write, dur_total);
-                fclose(timing_log);
-            }
-#endif
-
-            return result;
+            return write_indexed_png(output_path.c_str(), packed_data, final_size, final_size);
         } else {
             // Non-integer scaling - use grayscale
             std::vector<unsigned char> final_image(final_size * final_size);

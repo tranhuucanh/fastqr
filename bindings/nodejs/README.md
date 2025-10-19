@@ -111,10 +111,26 @@ brew tap tranhuucanh/fastqr
 brew install fastqr
 ```
 
-**Ubuntu/Debian:**
+**Linux (x86_64):**
 ```bash
-wget https://github.com/tranhuucanh/fastqr/releases/download/v1.0.0/fastqr-1.0.0-linux-x64.deb
-sudo dpkg -i fastqr-1.0.0-linux-x64.deb
+# Download latest release (replace VERSION with latest version, e.g., 1.0.21)
+VERSION="1.0.21"
+wget https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-linux-x86_64.tar.gz
+tar -xzf fastqr-${VERSION}-linux-x86_64.tar.gz
+sudo cp linux-x86_64/bin/fastqr /usr/local/bin/
+sudo chmod +x /usr/local/bin/fastqr
+
+# Verify installation
+fastqr --version
+```
+
+**Linux (ARM64/aarch64):**
+```bash
+VERSION="1.0.21"
+wget https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-linux-aarch64.tar.gz
+tar -xzf fastqr-${VERSION}-linux-aarch64.tar.gz
+sudo cp linux-aarch64/bin/fastqr /usr/local/bin/
+sudo chmod +x /usr/local/bin/fastqr
 ```
 
 ### Language Packages
