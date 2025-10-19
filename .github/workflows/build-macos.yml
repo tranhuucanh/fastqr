@@ -17,12 +17,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install cmake qrencode vips pkg-config || true
+          brew install cmake qrencode libpng pkg-config || true
           # Verify installations
           which cmake
           which pkg-config
           pkg-config --modversion libqrencode || echo "qrencode not found"
-          pkg-config --modversion vips || echo "vips not found"
+          pkg-config --modversion libpng || echo "libpng not found"
+          echo "libpng version:"
+          pkg-config --modversion libpng
 
       - name: Build binary
         run: |
@@ -42,12 +44,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install cmake qrencode vips pkg-config || true
+          brew install cmake qrencode libpng pkg-config || true
           # Verify installations
           which cmake
           which pkg-config
           pkg-config --modversion libqrencode || echo "qrencode not found"
-          pkg-config --modversion vips || echo "vips not found"
+          pkg-config --modversion libpng || echo "libpng not found"
+          echo "libpng version:"
+          pkg-config --modversion libpng
 
       - name: Build binary
         run: |
