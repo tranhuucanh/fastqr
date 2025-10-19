@@ -101,8 +101,7 @@ module FastQR
       temp_file.close
 
       # Call CLI with batch mode
-      lib_dir = File.expand_path('../../../lib', __dir__)
-      cli_path = File.join(lib_dir, Platform.binary_name)
+      cli_path = Platform.find_binary
 
       # Build command
       cmd_parts = [cli_path, '-F', temp_file.path, output_dir]
