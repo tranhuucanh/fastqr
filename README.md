@@ -7,7 +7,7 @@
 [![Shell](https://img.shields.io/badge/Shell-Bash-4EAA25.svg)](https://www.gnu.org/software/bash/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E.svg)](https://www.ecma-international.org/ecma-262/)
 [![Ruby](https://img.shields.io/badge/Ruby-Gem-red.svg)](https://rubygems.org/gems/fastqr)
-[![Node.js](https://img.shields.io/badge/Node.js-npm-green.svg)](https://www.npmjs.com/package/fastqr)
+[![Node.js](https://img.shields.io/badge/Node.js-npm-green.svg)](https://www.npmjs.com/package/fastqr-pro)
 [![PHP](https://img.shields.io/badge/PHP-Composer-blue.svg)](https://packagist.org/packages/fastqr/fastqr)
 
 **The fastest QR code generator on the planet.** 🚀
