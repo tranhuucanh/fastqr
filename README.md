@@ -195,7 +195,8 @@ See [INSTALL.md](INSTALL.md) for more options.
 ```bash
 fastqr "Hello World" output.png
 fastqr -s 500 -f 255,0,0 "Red QR" red.png
-fastqr -l logo.png -L 25 "QR with Logo" branded.png
+fastqr -s 500 -f 255,0,0 -b 142,142,142 "Red QR & Gray" red_and_gray.png
+fastqr -l logo.png "QR with Logo" branded.png
 ```
 
 **Batch Mode (8x faster!):**
