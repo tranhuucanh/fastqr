@@ -1,0 +1,11 @@
+FastQR - Fast QR Code Generator Library
+Copyright (C) 2025 FastQR Project
+
+This project is licensed under the GNU Lesser General Public License v2.1 (LGPL-2.1).
+
+This project statically links with:
+- libqrencode (LGPL v2.1)
+  Copyright (C) 2006-2017 Kentaro Fukuchi
+
+As required by the LGPL, you can obtain and rebuild this library with modified
+versions of libqrencode. See BUILD.md for details.

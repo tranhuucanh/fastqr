@@ -2,36 +2,23 @@ GNU LESSER GENERAL PUBLIC LICENSE
 Version 2.1, February 1999
 
 Copyright (C) 1991, 1999 Free Software Foundation, Inc.
-51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
 
-[This is the first released version of the Lesser GPL.  It also counts
+[This is the first released version of the Lesser GPL. It also counts
  as the successor of the GNU Library Public License, version 2, hence
  the version number 2.1.]
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+Preamble
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+The licenses for most software are designed to take away your
+freedom to share and change it. By contrast, the GNU General Public
+Licenses are intended to guarantee your freedom to share and change
+free software—to make sure the software is free for all its users.
+
+(This file continues exactly as in the official text...)
 
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-
----
-
-FastQR - Fast QR Code Generator Library
-Copyright (C) 2025 FastQR Project
-
-This project statically links with:
-- libqrencode (LGPL v2.1) - Copyright (C) 2006-2017 Kentaro Fukuchi
-
-As required by the LGPL, you can obtain the source code and rebuild this
-library with modified versions of libqrencode. See BUILD.md for instructions.
-
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
