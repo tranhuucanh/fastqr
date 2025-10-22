@@ -47,15 +47,13 @@ fi
 
 # Configure for standalone CLI (all dependencies static)
 if [[ "$OS" == "linux" ]]; then
-    # Linux: Use static linking with additional flags for AppImage compatibility
+    # Linux: Use static linking but let AppImage bundle dependencies
     cmake .. \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_INSTALL_PREFIX="$PWD/install" \
         -DFASTQR_BUILD_EXAMPLES=OFF \
-        -DCMAKE_CXX_FLAGS="-static-libgcc -static-libstdc++" \
-        -DCMAKE_C_FLAGS="-static-libgcc" \
-        -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
+        -DCMAKE_EXE_LINKER_FLAGS="-static"
 else
     # macOS: Regular static linking
     cmake .. \
@@ -109,6 +107,16 @@ EOF
     cat fastqr.desktop
     echo "Files in current directory:"
     ls -la *.desktop 2>/dev/null || echo "No desktop files found"
+
+    # Debug: Check the binary first
+    echo "🔍 Checking binary file:"
+    file build/fastqr
+    ls -la build/fastqr
+    echo "Binary size: $(stat -c%s build/fastqr) bytes"
+
+    # Test if binary runs
+    echo "🧪 Testing binary execution:"
+    ./build/fastqr -v || echo "Binary test failed"
 
     # Create AppImage with desktop file and additional flags for better compatibility
     # Try different parameter order
