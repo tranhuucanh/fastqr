@@ -235,15 +235,12 @@ jobs:
               chmod +x scripts/build-binaries.sh && \
               ./scripts/build-binaries.sh && \
 
-              echo '🔍 Verifying AppImage was created...' && \
+              echo '🔍 Verifying binary was created...' && \
               ls -la prebuilt/linux-aarch64/bin/ && \
               file prebuilt/linux-aarch64/bin/fastqr && \
 
-              echo '🧪 Testing AppImage...' && \
-              echo '📦 Extracting AppImage to test binary...' && \
-              ./prebuilt/linux-aarch64/bin/fastqr --appimage-extract && \
-              echo '🧪 Testing extracted binary...' && \
-              ./squashfs-root/usr/bin/fastqr -v
+              echo '🧪 Testing binary...' && \
+              ./prebuilt/linux-aarch64/bin/fastqr -v
             "
 
       - name: Upload artifact
