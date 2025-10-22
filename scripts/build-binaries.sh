@@ -84,9 +84,15 @@ if [[ "$OS" == "linux" ]]; then
         exit 1
     fi
 
-    # Install AppImage tools
+    # Install AppImage tools - try stable version instead of continuous
+    echo "📥 Downloading linuxdeploy stable version..."
     wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage
     chmod +x linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage
+    
+    # Also try appimagetool as fallback
+    echo "📥 Downloading appimagetool as fallback..."
+    wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${LINUXDEPLOY_ARCH}.AppImage
+    chmod +x appimagetool-${LINUXDEPLOY_ARCH}.AppImage
 
     # Clean any existing AppDir
     rm -rf AppDir
@@ -112,21 +118,72 @@ EOF
     file build/fastqr
     ls -la build/fastqr
     echo "Binary size: $(stat -c%s build/fastqr) bytes"
-
+    
+    # Check binary dependencies
+    echo "📋 Binary dependencies:"
+    ldd build/fastqr || echo "ldd failed"
+    
+    # Check binary headers
+    echo "📋 Binary headers:"
+    readelf -h build/fastqr || echo "readelf failed"
+    
+    # Check first few bytes
+    echo "📋 First 32 bytes (hex):"
+    hexdump -C build/fastqr | head -2
+    
     # Test if binary runs
     echo "🧪 Testing binary execution:"
     ./build/fastqr -v || echo "Binary test failed"
+    
+    # Check linuxdeploy version and capabilities
+    echo "🔍 linuxdeploy info:"
+    ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage --help | head -10
 
     # Create AppImage with desktop file and additional flags for better compatibility
     # Bundle all necessary libraries to avoid GLIBC conflicts
-    ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage \
+    echo "🔧 Trying linuxdeploy method..."
+    if ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage \
         --executable build/fastqr \
         --desktop-file fastqr.desktop \
         --appdir AppDir \
         --output appimage \
         --library /usr/local/lib \
         --library /usr/lib/x86_64-linux-gnu \
-        --library /lib/x86_64-linux-gnu
+        --library /lib/x86_64-linux-gnu; then
+        echo "✅ linuxdeploy succeeded"
+    else
+        echo "❌ linuxdeploy failed, trying manual AppImage creation..."
+        
+        # Manual AppImage creation as fallback
+        mkdir -p AppDir/usr/bin
+        cp build/fastqr AppDir/usr/bin/
+        chmod +x AppDir/usr/bin/fastqr
+        
+        # Copy desktop file
+        cp fastqr.desktop AppDir/usr/share/applications/
+        
+        # Copy dependencies manually
+        mkdir -p AppDir/usr/lib
+        ldd build/fastqr | grep -v "=>" | awk '{print $1}' | while read lib; do
+            if [ -f "/usr/lib/x86_64-linux-gnu/$lib" ]; then
+                cp "/usr/lib/x86_64-linux-gnu/$lib" AppDir/usr/lib/
+            elif [ -f "/usr/local/lib/$lib" ]; then
+                cp "/usr/local/lib/$lib" AppDir/usr/lib/
+            fi
+        done
+        
+        # Create AppRun
+        cat > AppDir/AppRun << 'EOF'
+#!/bin/bash
+HERE="$(dirname "$(readlink -f "${0}")")"
+export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
+exec "${HERE}/usr/bin/fastqr" "$@"
+EOF
+        chmod +x AppDir/AppRun
+        
+        # Create AppImage using appimagetool
+        ./appimagetool-${LINUXDEPLOY_ARCH}.AppImage AppDir fastqr-${LINUXDEPLOY_ARCH}.AppImage
+    fi
 
     # Copy AppImage to output directory
     cp fastqr-${LINUXDEPLOY_ARCH}.AppImage "$OUTPUT_DIR/bin/fastqr"
