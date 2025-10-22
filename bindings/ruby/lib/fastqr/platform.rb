@@ -73,7 +73,23 @@ module FastQR
         base_dir = File.expand_path('../../prebuilt', __dir__)
         binary_path = File.join(base_dir, platform, 'bin', 'fastqr')
 
-        return binary_path if File.exist?(binary_path)
+        if platform.start_with?('linux')
+          # Linux: Check for AppImage first
+          if File.exist?(binary_path) && File.executable?(binary_path)
+            # Test if AppImage can run (version check)
+            begin
+              output = `#{binary_path} -v 2>&1`.strip
+              if $?.success? && output.include?('FastQR')
+                return binary_path
+              end
+            rescue => e
+              # AppImage failed, continue to fallback
+            end
+          end
+        else
+          # macOS/Windows: Use regular binary
+          return binary_path if File.exist?(binary_path)
+        end
 
         # Try to extract from tarball
         tarball_path = File.join(base_dir, "#{platform}.tar.gz")

@@ -37,7 +37,7 @@ class FastQR
 
         // Try to find the binary (pre-built first, then system)
         $binaryPaths = [
-            __DIR__ . "/../../prebuilt/$platform/bin/fastqr",  // Pre-built binary
+            __DIR__ . "/../../prebuilt/$platform/bin/fastqr",  // Pre-built binary (AppImage for Linux)
             '/usr/local/bin/fastqr',                            // System install
             '/usr/bin/fastqr',
             __DIR__ . '/../../../build/fastqr',                 // Local build
@@ -45,8 +45,23 @@ class FastQR
 
         foreach ($binaryPaths as $path) {
             if (file_exists($path) && is_executable($path)) {
-                self::$cliPath = $path;
-                return $path;
+                // For Linux, test if AppImage can run
+                if ($os === 'linux' && strpos($path, 'prebuilt') !== false) {
+                    try {
+                        $output = shell_exec(escapeshellarg($path) . ' -v 2>&1');
+                        if ($output && strpos($output, 'FastQR') !== false) {
+                            self::$cliPath = $path;
+                            return $path;
+                        }
+                    } catch (Exception $e) {
+                        // AppImage failed, continue to next path
+                        continue;
+                    }
+                } else {
+                    // macOS/Windows or system binary
+                    self::$cliPath = $path;
+                    return $path;
+                }
             }
         }
 
@@ -177,7 +192,7 @@ class FastQR
         $cliPath = self::findBinary();
         $cmd = escapeshellarg($cliPath) . ' -v 2>&1';
         $output = shell_exec($cmd);
-        
+
         if ($output === null) {
             return 'unknown';
         }

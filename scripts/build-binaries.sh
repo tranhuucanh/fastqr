@@ -61,9 +61,26 @@ fi
 
 cd ..
 
-# Copy standalone CLI binary (no dylib needed!)
-cp build/fastqr "$OUTPUT_DIR/bin/fastqr"
-echo "✅ Built standalone CLI (all static - no dependencies!)"
+if [[ "$OS" == "linux" ]]; then
+    echo "🔧 Building AppImage for Linux..."
+
+    # Install AppImage tools
+    wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
+    chmod +x linuxdeploy-${ARCH}.AppImage
+
+    # Create AppImage
+    ./linuxdeploy-${ARCH}.AppImage --appdir AppDir --executable build/fastqr --output appimage
+
+    # Copy AppImage to output directory
+    cp fastqr-${ARCH}.AppImage "$OUTPUT_DIR/bin/fastqr"
+    chmod +x "$OUTPUT_DIR/bin/fastqr"
+
+    echo "✅ Built AppImage for Linux (universal compatibility!)"
+else
+    # macOS: Copy standalone CLI binary
+    cp build/fastqr "$OUTPUT_DIR/bin/fastqr"
+    echo "✅ Built standalone CLI for macOS (all static - no dependencies!)"
+fi
 
 # No shared library needed - CLI is standalone!
 # (Ruby and Node.js use CLI binary directly)

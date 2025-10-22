@@ -42,12 +42,27 @@ function extractBinary(tarballPath, destDir) {
 function findFastQRBinary() {
   const platform = detectPlatform();
   const prebuiltDir = path.join(__dirname, '..', 'prebuilt', platform);
-  const binaryPath = path.join(prebuiltDir, 'fastqr');
+  const binaryPath = path.join(prebuiltDir, 'bin', 'fastqr');
 
-  if (fs.existsSync(binaryPath)) {
-    // Make sure it's executable
-    fs.chmodSync(binaryPath, 0o755);
-    return binaryPath;
+  if (platform.startsWith('linux')) {
+    // Linux: Check for AppImage first
+    if (fs.existsSync(binaryPath) && fs.accessSync(binaryPath, fs.constants.X_OK)) {
+      try {
+        // Test if AppImage can run (version check)
+        const output = execSync(`${binaryPath} -v`, { encoding: 'utf8', stdio: 'pipe' });
+        if (output.includes('FastQR')) {
+          return binaryPath;
+        }
+      } catch (error) {
+        // AppImage failed, continue to fallback
+      }
+    }
+  } else {
+    // macOS/Windows: Use regular binary
+    if (fs.existsSync(binaryPath)) {
+      fs.chmodSync(binaryPath, 0o755);
+      return binaryPath;
+    }
   }
 
   // Try to extract from tarball

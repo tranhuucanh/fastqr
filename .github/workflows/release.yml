@@ -166,10 +166,17 @@ jobs:
           echo "✅ libqrencode built and installed"
           ls -la /usr/local/lib/libqrencode.*
 
-      - name: Build binary
+      - name: Build AppImage
         run: |
           chmod +x scripts/build-binaries.sh
           ./scripts/build-binaries.sh
+
+          echo "🔍 Verifying AppImage was created..."
+          ls -la prebuilt/linux-x86_64/bin/
+          file prebuilt/linux-x86_64/bin/fastqr
+
+          echo "🧪 Testing AppImage..."
+          ./prebuilt/linux-x86_64/bin/fastqr -v
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -197,7 +204,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
-      - name: Build in ARM64 container
+      - name: Build AppImage in ARM64 container
         run: |
           docker run --rm --platform linux/arm64 \
             -v $PWD:/workspace \
@@ -222,7 +229,14 @@ jobs:
 
               cd /workspace && \
               chmod +x scripts/build-binaries.sh && \
-              ./scripts/build-binaries.sh
+              ./scripts/build-binaries.sh && \
+
+              echo '🔍 Verifying AppImage was created...' && \
+              ls -la prebuilt/linux-aarch64/bin/ && \
+              file prebuilt/linux-aarch64/bin/fastqr && \
+
+              echo '🧪 Testing AppImage...' && \
+              ./prebuilt/linux-aarch64/bin/fastqr -v
             "
 
       - name: Upload artifact
