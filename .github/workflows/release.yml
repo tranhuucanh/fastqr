@@ -176,7 +176,11 @@ jobs:
           file prebuilt/linux-x86_64/bin/fastqr
 
           echo "🧪 Testing AppImage..."
-          ./prebuilt/linux-x86_64/bin/fastqr -v
+          # AppImage needs FUSE to run, but we can extract and test the binary
+          echo "📦 Extracting AppImage to test binary..."
+          ./prebuilt/linux-x86_64/bin/fastqr --appimage-extract
+          echo "🧪 Testing extracted binary..."
+          ./squashfs-root/usr/bin/fastqr -v
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -236,7 +240,10 @@ jobs:
               file prebuilt/linux-aarch64/bin/fastqr && \
 
               echo '🧪 Testing AppImage...' && \
-              ./prebuilt/linux-aarch64/bin/fastqr -v
+              echo '📦 Extracting AppImage to test binary...' && \
+              ./prebuilt/linux-aarch64/bin/fastqr --appimage-extract && \
+              echo '🧪 Testing extracted binary...' && \
+              ./squashfs-root/usr/bin/fastqr -v
             "
 
       - name: Upload artifact
