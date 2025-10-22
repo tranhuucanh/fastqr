@@ -46,11 +46,24 @@ if [[ "$OS" == "linux" ]]; then
 fi
 
 # Configure for standalone CLI (all dependencies static)
-cmake .. \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=OFF \
-    -DCMAKE_INSTALL_PREFIX="$PWD/install" \
-    -DFASTQR_BUILD_EXAMPLES=OFF
+if [[ "$OS" == "linux" ]]; then
+    # Linux: Use static linking with additional flags for AppImage compatibility
+    cmake .. \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_INSTALL_PREFIX="$PWD/install" \
+        -DFASTQR_BUILD_EXAMPLES=OFF \
+        -DCMAKE_CXX_FLAGS="-static-libgcc -static-libstdc++" \
+        -DCMAKE_C_FLAGS="-static-libgcc" \
+        -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
+else
+    # macOS: Regular static linking
+    cmake .. \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_INSTALL_PREFIX="$PWD/install" \
+        -DFASTQR_BUILD_EXAMPLES=OFF
+fi
 
 # Build
 if [[ "$OS" == "macos" ]]; then
@@ -64,12 +77,21 @@ cd ..
 if [[ "$OS" == "linux" ]]; then
     echo "🔧 Building AppImage for Linux..."
 
+    # Determine the correct AppImage tool for the architecture
+    if [[ "$ARCH" == "x86_64" ]]; then
+        LINUXDEPLOY_ARCH="x86_64"
+    elif [[ "$ARCH" == "aarch64" ]]; then
+        LINUXDEPLOY_ARCH="aarch64"
+    else
+        echo "❌ Unsupported Linux architecture: $ARCH"
+        exit 1
+    fi
+
     # Install AppImage tools
-    wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
-    chmod +x linuxdeploy-${ARCH}.AppImage
+    wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage
+    chmod +x linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage
 
     # Create desktop file for AppImage
-    mkdir -p AppDir/usr/share/applications
     cat > fastqr.desktop << 'EOF'
 [Desktop Entry]
 Name=FastQR
@@ -79,12 +101,17 @@ Icon=fastqr
 Type=Application
 Categories=Utility;
 EOF
-    
-    # Create AppImage with desktop file
-    ./linuxdeploy-${ARCH}.AppImage --appdir AppDir --executable build/fastqr --desktop-file fastqr.desktop --output appimage
+
+    # Create AppImage with desktop file and additional flags for better compatibility
+    ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage \
+        --appdir AppDir \
+        --executable build/fastqr \
+        --desktop-file fastqr.desktop \
+        --output appimage \
+        --library /usr/local/lib
 
     # Copy AppImage to output directory
-    cp fastqr-${ARCH}.AppImage "$OUTPUT_DIR/bin/fastqr"
+    cp fastqr-${LINUXDEPLOY_ARCH}.AppImage "$OUTPUT_DIR/bin/fastqr"
     chmod +x "$OUTPUT_DIR/bin/fastqr"
 
     echo "✅ Built AppImage for Linux (universal compatibility!)"
