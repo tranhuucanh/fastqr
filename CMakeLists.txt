@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(fastqr VERSION 1.0.22 LANGUAGES CXX C)
+project(fastqr VERSION 1.0.23 LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
