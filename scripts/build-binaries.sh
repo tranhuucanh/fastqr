@@ -91,8 +91,9 @@ if [[ "$OS" == "linux" ]]; then
     wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage
     chmod +x linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage
 
-    # Create desktop file for AppImage
-    cat > fastqr.desktop << 'EOF'
+    # Create desktop file for AppImage in AppDir
+    mkdir -p AppDir/usr/share/applications
+    cat > AppDir/usr/share/applications/fastqr.desktop << 'EOF'
 [Desktop Entry]
 Name=FastQR
 Comment=Fast QR Code Generator
@@ -106,7 +107,7 @@ EOF
     ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage \
         --appdir AppDir \
         --executable build/fastqr \
-        --desktop-file fastqr.desktop \
+        --desktop-file AppDir/usr/share/applications/fastqr.desktop \
         --output appimage \
         --library /usr/local/lib
 
