@@ -72,47 +72,7 @@ fi
 cd ..
 
 if [[ "$OS" == "linux" ]]; then
-    echo "🔧 Building AppImage for Linux..."
-
-    # Determine the correct AppImage tool for the architecture
-    if [[ "$ARCH" == "x86_64" ]]; then
-        LINUXDEPLOY_ARCH="x86_64"
-    elif [[ "$ARCH" == "aarch64" ]]; then
-        LINUXDEPLOY_ARCH="aarch64"
-    else
-        echo "❌ Unsupported Linux architecture: $ARCH"
-        exit 1
-    fi
-
-    # Install AppImage tools - try stable version instead of continuous
-    echo "📥 Downloading linuxdeploy stable version..."
-    wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage
-    chmod +x linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage
-
-    # Also try appimagetool as fallback
-    echo "📥 Downloading appimagetool as fallback..."
-    wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${LINUXDEPLOY_ARCH}.AppImage
-    chmod +x appimagetool-${LINUXDEPLOY_ARCH}.AppImage
-
-    # Clean any existing AppDir
-    rm -rf AppDir
-
-    # Create desktop file for AppImage (simplified version)
-    cat > fastqr.desktop << 'EOF'
-[Desktop Entry]
-Name=FastQR
-Comment=Fast QR Code Generator
-Exec=fastqr
-Icon=fastqr
-Type=Application
-Categories=Utility;
-EOF
-
-    # Debug: Show what we created
-    echo "Desktop file contents:"
-    cat fastqr.desktop
-    echo "Files in current directory:"
-    ls -la *.desktop 2>/dev/null || echo "No desktop files found"
+    echo "🔧 Building binary for Linux..."
 
     # Debug: Check the binary first
     echo "🔍 Checking binary file:"
@@ -124,107 +84,149 @@ EOF
     echo "📋 Binary dependencies:"
     ldd build/fastqr || echo "ldd failed"
 
-    # Check binary headers
-    echo "📋 Binary headers:"
-    readelf -h build/fastqr || echo "readelf failed"
-
-    # Check first few bytes
-    echo "📋 First 32 bytes (hex):"
-    hexdump -C build/fastqr | head -2
-
     # Test if binary runs
     echo "🧪 Testing binary execution:"
     ./build/fastqr -v || echo "Binary test failed"
 
-    # Check linuxdeploy version and capabilities
-    echo "🔍 linuxdeploy info:"
-    ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage --help | head -10
-
-    # Create AppImage with desktop file and additional flags for better compatibility
-    # Bundle all necessary libraries to avoid GLIBC conflicts
-    echo "🔧 Trying linuxdeploy method..."
-    if ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage \
-        --executable build/fastqr \
-        --desktop-file fastqr.desktop \
-        --appdir AppDir \
-        --output appimage \
-        --library /usr/local/lib \
-        --library /usr/lib/x86_64-linux-gnu \
-        --library /lib/x86_64-linux-gnu; then
-        echo "✅ linuxdeploy succeeded"
+    # For ARM64, just copy the binary directly (no AppImage needed)
+    if [[ "$ARCH" == "aarch64" ]]; then
+        echo "🔧 Creating simple binary distribution for ARM64..."
+        cp build/fastqr "$OUTPUT_DIR/bin/fastqr"
+        chmod +x "$OUTPUT_DIR/bin/fastqr"
+        echo "✅ Built binary for Linux ARM64"
     else
-        echo "❌ linuxdeploy failed, trying manual AppImage creation..."
+        # For x86_64, try to create AppImage
+        echo "🔧 Building AppImage for Linux x86_64..."
 
-        # Manual AppImage creation as fallback
-        mkdir -p AppDir/usr/bin
-        cp build/fastqr AppDir/usr/bin/
-        chmod +x AppDir/usr/bin/fastqr
+        # Determine the correct AppImage tool for the architecture
+        if [[ "$ARCH" == "x86_64" ]]; then
+            LINUXDEPLOY_ARCH="x86_64"
+        else
+            echo "❌ Unsupported Linux architecture: $ARCH"
+            exit 1
+        fi
 
-        # Copy desktop file
-        cp fastqr.desktop AppDir/usr/share/applications/
-        
-        # Also copy to AppDir root (some tools expect it there)
-        cp fastqr.desktop AppDir/
-        
-        # Create a simple icon (desktop file references it)
-        echo "🎨 Creating simple icon..."
-        # Create a minimal 64x64 PNG icon
-        convert -size 64x64 xc:white -fill black -pointsize 24 -gravity center -annotate +0+0 "QR" AppDir/fastqr.png 2>/dev/null || echo "convert not available, creating placeholder"
-        
-        # Copy icon to proper locations
-        mkdir -p AppDir/usr/share/pixmaps
-        cp AppDir/fastqr.png AppDir/usr/share/pixmaps/ 2>/dev/null || true
+        # Install AppImage tools - try stable version instead of continuous
+        echo "📥 Downloading linuxdeploy stable version..."
+        wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage
+        chmod +x linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage
 
-        # Copy dependencies manually
-        mkdir -p AppDir/usr/lib
-        echo "📋 Copying dependencies..."
-        ldd build/fastqr | grep "=>" | awk '{print $3}' | while read libpath; do
-            if [ -f "$libpath" ]; then
-                echo "  Copying: $libpath"
-                cp "$libpath" AppDir/usr/lib/
-            fi
-        done
+        # Also try appimagetool as fallback
+        echo "📥 Downloading appimagetool as fallback..."
+        wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${LINUXDEPLOY_ARCH}.AppImage
+        chmod +x appimagetool-${LINUXDEPLOY_ARCH}.AppImage
 
-        # Also copy specific libraries we know we need
-        echo "📋 Copying specific libraries..."
-        for lib in libqrencode.so libpng.so libz.so; do
-            if [ -f "/usr/local/lib/$lib" ]; then
-                echo "  Copying: /usr/local/lib/$lib"
-                cp "/usr/local/lib/$lib" AppDir/usr/lib/
-            elif [ -f "/usr/lib/x86_64-linux-gnu/$lib" ]; then
-                echo "  Copying: /usr/lib/x86_64-linux-gnu/$lib"
-                cp "/usr/lib/x86_64-linux-gnu/$lib" AppDir/usr/lib/
-            fi
-        done
+        # Clean any existing AppDir
+        rm -rf AppDir
 
-        # Create AppRun
-        cat > AppDir/AppRun << 'EOF'
+        # Create desktop file for AppImage (simplified version)
+        cat > fastqr.desktop << 'EOF'
+[Desktop Entry]
+Name=FastQR
+Comment=Fast QR Code Generator
+Exec=fastqr
+Icon=fastqr
+Type=Application
+Categories=Utility;
+EOF
+
+        # Debug: Show what we created
+        echo "Desktop file contents:"
+        cat fastqr.desktop
+        echo "Files in current directory:"
+        ls -la *.desktop 2>/dev/null || echo "No desktop files found"
+
+        # Check linuxdeploy version and capabilities
+        echo "🔍 linuxdeploy info:"
+        ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage --help | head -10 || echo "linuxdeploy help failed"
+
+        # Create AppImage with desktop file and additional flags for better compatibility
+        # Bundle all necessary libraries to avoid GLIBC conflicts
+        echo "🔧 Trying linuxdeploy method..."
+        if ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage \
+            --executable build/fastqr \
+            --desktop-file fastqr.desktop \
+            --appdir AppDir \
+            --output appimage \
+            --library /usr/local/lib \
+            --library /usr/lib/x86_64-linux-gnu \
+            --library /lib/x86_64-linux-gnu; then
+            echo "✅ linuxdeploy succeeded"
+        else
+            echo "❌ linuxdeploy failed, trying manual AppImage creation..."
+
+            # Manual AppImage creation as fallback
+            mkdir -p AppDir/usr/bin
+            mkdir -p AppDir/usr/share/applications
+            cp build/fastqr AppDir/usr/bin/
+            chmod +x AppDir/usr/bin/fastqr
+
+            # Copy desktop file
+            cp fastqr.desktop AppDir/usr/share/applications/
+
+            # Also copy to AppDir root (some tools expect it there)
+            cp fastqr.desktop AppDir/
+
+            # Create a simple icon (desktop file references it)
+            echo "🎨 Creating simple icon..."
+            # Create a minimal 64x64 PNG icon
+            convert -size 64x64 xc:white -fill black -pointsize 24 -gravity center -annotate +0+0 "QR" AppDir/fastqr.png 2>/dev/null || echo "convert not available, creating placeholder"
+
+            # Copy icon to proper locations
+            mkdir -p AppDir/usr/share/pixmaps
+            cp AppDir/fastqr.png AppDir/usr/share/pixmaps/ 2>/dev/null || true
+
+            # Copy dependencies manually
+            mkdir -p AppDir/usr/lib
+            echo "📋 Copying dependencies..."
+            ldd build/fastqr | grep "=>" | awk '{print $3}' | while read libpath; do
+                if [ -f "$libpath" ]; then
+                    echo "  Copying: $libpath"
+                    cp "$libpath" AppDir/usr/lib/
+                fi
+            done
+
+            # Also copy specific libraries we know we need
+            echo "📋 Copying specific libraries..."
+            for lib in libqrencode.so libpng.so libz.so; do
+                if [ -f "/usr/local/lib/$lib" ]; then
+                    echo "  Copying: /usr/local/lib/$lib"
+                    cp "/usr/local/lib/$lib" AppDir/usr/lib/
+                elif [ -f "/usr/lib/x86_64-linux-gnu/$lib" ]; then
+                    echo "  Copying: /usr/lib/x86_64-linux-gnu/$lib"
+                    cp "/usr/lib/x86_64-linux-gnu/$lib" AppDir/usr/lib/
+                fi
+            done
+
+            # Create AppRun
+            cat > AppDir/AppRun << 'EOF'
 #!/bin/bash
 HERE="$(dirname "$(readlink -f "${0}")")"
 export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
 exec "${HERE}/usr/bin/fastqr" "$@"
 EOF
-        chmod +x AppDir/AppRun
+            chmod +x AppDir/AppRun
 
-        # Extract appimagetool and use it directly (no FUSE needed)
-        echo "🔧 Extracting appimagetool..."
-        ./appimagetool-${LINUXDEPLOY_ARCH}.AppImage --appimage-extract
-        chmod +x squashfs-root/AppRun
+            # Extract appimagetool and use it directly (no FUSE needed)
+            echo "🔧 Extracting appimagetool..."
+            ./appimagetool-${LINUXDEPLOY_ARCH}.AppImage --appimage-extract
+            chmod +x squashfs-root/AppRun
 
-        # Debug: Show AppDir structure
-        echo "📁 AppDir structure:"
-        find AppDir -type f | head -20
-        
-        # Use extracted appimagetool
-        echo "🔧 Creating AppImage with extracted appimagetool..."
-        ./squashfs-root/AppRun AppDir fastqr-${LINUXDEPLOY_ARCH}.AppImage
+            # Debug: Show AppDir structure
+            echo "📁 AppDir structure:"
+            find AppDir -type f | head -20
+
+            # Use extracted appimagetool
+            echo "🔧 Creating AppImage with extracted appimagetool..."
+            ./squashfs-root/AppRun AppDir fastqr-${LINUXDEPLOY_ARCH}.AppImage
+        fi
+
+        # Copy AppImage to output directory
+        cp fastqr-${LINUXDEPLOY_ARCH}.AppImage "$OUTPUT_DIR/bin/fastqr"
+        chmod +x "$OUTPUT_DIR/bin/fastqr"
+
+        echo "✅ Built AppImage for Linux x86_64 (universal compatibility!)"
     fi
-
-    # Copy AppImage to output directory
-    cp fastqr-${LINUXDEPLOY_ARCH}.AppImage "$OUTPUT_DIR/bin/fastqr"
-    chmod +x "$OUTPUT_DIR/bin/fastqr"
-
-    echo "✅ Built AppImage for Linux (universal compatibility!)"
 else
     # macOS: Copy standalone CLI binary
     cp build/fastqr "$OUTPUT_DIR/bin/fastqr"
