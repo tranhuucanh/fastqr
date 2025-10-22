@@ -47,13 +47,12 @@ fi
 
 # Configure for standalone CLI (all dependencies static)
 if [[ "$OS" == "linux" ]]; then
-    # Linux: Use static linking but let AppImage bundle dependencies
+    # Linux: Use dynamic linking, let AppImage bundle all dependencies
     cmake .. \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_INSTALL_PREFIX="$PWD/install" \
-        -DFASTQR_BUILD_EXAMPLES=OFF \
-        -DCMAKE_EXE_LINKER_FLAGS="-static"
+        -DFASTQR_BUILD_EXAMPLES=OFF
 else
     # macOS: Regular static linking
     cmake .. \
@@ -119,13 +118,15 @@ EOF
     ./build/fastqr -v || echo "Binary test failed"
 
     # Create AppImage with desktop file and additional flags for better compatibility
-    # Try different parameter order
+    # Bundle all necessary libraries to avoid GLIBC conflicts
     ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage \
         --executable build/fastqr \
         --desktop-file fastqr.desktop \
         --appdir AppDir \
         --output appimage \
-        --library /usr/local/lib
+        --library /usr/local/lib \
+        --library /usr/lib/x86_64-linux-gnu \
+        --library /lib/x86_64-linux-gnu
 
     # Copy AppImage to output directory
     cp fastqr-${LINUXDEPLOY_ARCH}.AppImage "$OUTPUT_DIR/bin/fastqr"
