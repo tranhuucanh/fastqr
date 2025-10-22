@@ -103,6 +103,7 @@ if [[ "$OS" == "linux" ]]; then
 Name=FastQR
 Comment=Fast QR Code Generator
 Exec=fastqr
+Icon=fastqr
 Type=Application
 Categories=Utility;
 EOF
@@ -161,6 +162,18 @@ EOF
 
         # Copy desktop file
         cp fastqr.desktop AppDir/usr/share/applications/
+        
+        # Also copy to AppDir root (some tools expect it there)
+        cp fastqr.desktop AppDir/
+        
+        # Create a simple icon (desktop file references it)
+        echo "🎨 Creating simple icon..."
+        # Create a minimal 64x64 PNG icon
+        convert -size 64x64 xc:white -fill black -pointsize 24 -gravity center -annotate +0+0 "QR" AppDir/fastqr.png 2>/dev/null || echo "convert not available, creating placeholder"
+        
+        # Copy icon to proper locations
+        mkdir -p AppDir/usr/share/pixmaps
+        cp AppDir/fastqr.png AppDir/usr/share/pixmaps/ 2>/dev/null || true
 
         # Copy dependencies manually
         mkdir -p AppDir/usr/lib
@@ -171,7 +184,7 @@ EOF
                 cp "$libpath" AppDir/usr/lib/
             fi
         done
-        
+
         # Also copy specific libraries we know we need
         echo "📋 Copying specific libraries..."
         for lib in libqrencode.so libpng.so libz.so; do
@@ -197,6 +210,10 @@ EOF
         echo "🔧 Extracting appimagetool..."
         ./appimagetool-${LINUXDEPLOY_ARCH}.AppImage --appimage-extract
         chmod +x squashfs-root/AppRun
+
+        # Debug: Show AppDir structure
+        echo "📁 AppDir structure:"
+        find AppDir -type f | head -20
         
         # Use extracted appimagetool
         echo "🔧 Creating AppImage with extracted appimagetool..."
