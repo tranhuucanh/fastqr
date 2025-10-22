@@ -63,14 +63,14 @@ cd ..
 
 if [[ "$OS" == "linux" ]]; then
     echo "🔧 Building AppImage for Linux..."
-    
+
     # Install AppImage tools
     wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
     chmod +x linuxdeploy-${ARCH}.AppImage
-    
+
     # Create desktop file for AppImage
     mkdir -p AppDir/usr/share/applications
-    cat > AppDir/usr/share/applications/fastqr.desktop << 'EOF'
+    cat > fastqr.desktop << 'EOF'
 [Desktop Entry]
 Name=FastQR
 Comment=Fast QR Code Generator
@@ -80,13 +80,13 @@ Type=Application
 Categories=Utility;
 EOF
     
-    # Create AppImage
-    ./linuxdeploy-${ARCH}.AppImage --appdir AppDir --executable build/fastqr --desktop-file AppDir/usr/share/applications/fastqr.desktop --output appimage
-    
+    # Create AppImage with desktop file
+    ./linuxdeploy-${ARCH}.AppImage --appdir AppDir --executable build/fastqr --desktop-file fastqr.desktop --output appimage
+
     # Copy AppImage to output directory
     cp fastqr-${ARCH}.AppImage "$OUTPUT_DIR/bin/fastqr"
     chmod +x "$OUTPUT_DIR/bin/fastqr"
-    
+
     echo "✅ Built AppImage for Linux (universal compatibility!)"
 else
     # macOS: Copy standalone CLI binary
