@@ -134,7 +134,7 @@ if(NOT BUILD_SHARED_LIBS)
                 ${PNG_STATIC_LIBRARY}
                 ${ZLIB_STATIC_LIBRARY}
         )
-        
+
         # On Linux, ensure FULL static linking (no GLIBC dependency)
         if(UNIX AND NOT APPLE)
             target_link_options(fastqr-cli PRIVATE

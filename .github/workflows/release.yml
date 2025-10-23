@@ -59,7 +59,7 @@ jobs:
             echo "❌ ERROR: libpng version too old: $PKG_PNG_VER"
             exit 1
           fi
-          
+
           echo "=== zlib location ==="
           brew --prefix zlib
           ls -la $(brew --prefix zlib)/lib/libz.a || echo "⚠️ libz.a not found"
@@ -215,8 +215,11 @@ jobs:
               ls -la prebuilt/linux-x86_64/bin/
               file prebuilt/linux-x86_64/bin/fastqr
 
-              echo '📋 Checking dependencies (should only show linux-vdso, libc, libpthread, libm, libdl):'
-              ldd prebuilt/linux-x86_64/bin/fastqr || echo 'Binary is fully static!'
+              echo '📋 Checking dependencies:'
+              ldd prebuilt/linux-x86_64/bin/fastqr 2>&1 || echo '✅ Binary is fully static (ldd failed - this is GOOD!)'
+
+              echo '🔍 Checking if binary is truly static:'
+              file prebuilt/linux-x86_64/bin/fastqr | grep -q 'statically linked' && echo '✅ CONFIRMED: Binary is statically linked' || echo '⚠️ WARNING: Binary may have dynamic dependencies'
 
               echo '🧪 Testing binary...'
               ./prebuilt/linux-x86_64/bin/fastqr -v
@@ -309,8 +312,11 @@ jobs:
               ls -la prebuilt/linux-aarch64/bin/
               file prebuilt/linux-aarch64/bin/fastqr
 
-              echo '📋 Checking dependencies (should only show linux-vdso, libc, libpthread, libm, libdl):'
-              ldd prebuilt/linux-aarch64/bin/fastqr || echo 'Binary is fully static!'
+              echo '📋 Checking dependencies:'
+              ldd prebuilt/linux-aarch64/bin/fastqr 2>&1 || echo '✅ Binary is fully static (ldd failed - this is GOOD!)'
+
+              echo '🔍 Checking if binary is truly static:'
+              file prebuilt/linux-aarch64/bin/fastqr | grep -q 'statically linked' && echo '✅ CONFIRMED: Binary is statically linked' || echo '⚠️ WARNING: Binary may have dynamic dependencies'
 
               echo '🧪 Testing binary...'
               ./prebuilt/linux-aarch64/bin/fastqr -v
