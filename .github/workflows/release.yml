@@ -155,33 +155,65 @@ jobs:
             -w /workspace \
             ubuntu:20.04 \
             bash -c "
-              export DEBIAN_FRONTEND=noninteractive && \
-              apt-get update && \
-              apt-get install -y cmake libpng-dev zlib1g-dev pkg-config build-essential wget autoconf automake libtool && \
+              set -e
+              export DEBIAN_FRONTEND=noninteractive
 
-              cd /tmp && \
-              wget https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz && \
-              tar -xzf v4.1.1.tar.gz && \
-              cd libqrencode-4.1.1 && \
-              ./autogen.sh && \
-              ./configure --enable-static --disable-shared --without-tools && \
-              make -j\$(nproc) && \
-              make install && \
-              ldconfig && \
+              echo '📦 Installing build tools...'
+              apt-get update
+              apt-get install -y cmake pkg-config build-essential wget autoconf automake libtool
 
-              echo '✅ libqrencode built and installed' && \
-              ls -la /usr/local/lib/libqrencode.* && \
+              echo '📦 Building zlib from source (static)...'
+              cd /tmp
+              wget https://zlib.net/zlib-1.3.tar.gz
+              tar -xzf zlib-1.3.tar.gz
+              cd zlib-1.3
+              ./configure --static --prefix=/usr/local
+              make -j\$(nproc)
+              make install
+              echo '✅ zlib installed:'
+              ls -la /usr/local/lib/libz.*
 
-              cd /workspace && \
-              chmod +x scripts/build-binaries.sh && \
-              ./scripts/build-binaries.sh && \
+              echo '📦 Building libpng from source (static)...'
+              cd /tmp
+              wget https://downloads.sourceforge.net/libpng/libpng-1.6.40.tar.gz
+              tar -xzf libpng-1.6.40.tar.gz
+              cd libpng-1.6.40
+              ./configure --enable-static --disable-shared --prefix=/usr/local
+              make -j\$(nproc)
+              make install
+              ldconfig
+              echo '✅ libpng installed:'
+              ls -la /usr/local/lib/libpng*
 
-              echo '🔍 Verifying static binary was created...' && \
-              ls -la prebuilt/linux-x86_64/bin/ && \
-              file prebuilt/linux-x86_64/bin/fastqr && \
+              echo '📦 Building libqrencode from source (static)...'
+              cd /tmp
+              wget https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz
+              tar -xzf v4.1.1.tar.gz
+              cd libqrencode-4.1.1
+              ./autogen.sh
+              ./configure --enable-static --disable-shared --without-tools --prefix=/usr/local
+              make -j\$(nproc)
+              make install
+              ldconfig
+              echo '✅ libqrencode installed:'
+              ls -la /usr/local/lib/libqrencode.*
 
-              echo '🧪 Testing binary...' && \
+              echo '🔨 Building fastqr binary...'
+              cd /workspace
+              chmod +x scripts/build-binaries.sh
+              ./scripts/build-binaries.sh
+
+              echo '🔍 Verifying binary...'
+              ls -la prebuilt/linux-x86_64/bin/
+              file prebuilt/linux-x86_64/bin/fastqr
+
+              echo '📋 Checking dependencies (should only show linux-vdso, libc, libpthread, libm, libdl):'
+              ldd prebuilt/linux-x86_64/bin/fastqr || echo 'Binary is fully static!'
+
+              echo '🧪 Testing binary...'
               ./prebuilt/linux-x86_64/bin/fastqr -v
+
+              echo '✅ Build complete!'
             "
 
       - name: Upload artifact
@@ -217,33 +249,65 @@ jobs:
             -w /workspace \
             arm64v8/ubuntu:20.04 \
             bash -c "
-              export DEBIAN_FRONTEND=noninteractive && \
-              apt-get update && \
-              apt-get install -y cmake libpng-dev zlib1g-dev pkg-config build-essential wget autoconf automake libtool && \
+              set -e
+              export DEBIAN_FRONTEND=noninteractive
 
-              cd /tmp && \
-              wget https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz && \
-              tar -xzf v4.1.1.tar.gz && \
-              cd libqrencode-4.1.1 && \
-              ./autogen.sh && \
-              ./configure --enable-static --disable-shared --without-tools && \
-              make -j\$(nproc) && \
-              make install && \
-              ldconfig && \
+              echo '📦 Installing build tools...'
+              apt-get update
+              apt-get install -y cmake pkg-config build-essential wget autoconf automake libtool
 
-              echo '✅ libqrencode built and installed' && \
-              ls -la /usr/local/lib/libqrencode.* && \
+              echo '📦 Building zlib from source (static)...'
+              cd /tmp
+              wget https://zlib.net/zlib-1.3.tar.gz
+              tar -xzf zlib-1.3.tar.gz
+              cd zlib-1.3
+              ./configure --static --prefix=/usr/local
+              make -j\$(nproc)
+              make install
+              echo '✅ zlib installed:'
+              ls -la /usr/local/lib/libz.*
 
-              cd /workspace && \
-              chmod +x scripts/build-binaries.sh && \
-              ./scripts/build-binaries.sh && \
+              echo '📦 Building libpng from source (static)...'
+              cd /tmp
+              wget https://downloads.sourceforge.net/libpng/libpng-1.6.40.tar.gz
+              tar -xzf libpng-1.6.40.tar.gz
+              cd libpng-1.6.40
+              ./configure --enable-static --disable-shared --prefix=/usr/local
+              make -j\$(nproc)
+              make install
+              ldconfig
+              echo '✅ libpng installed:'
+              ls -la /usr/local/lib/libpng*
 
-              echo '🔍 Verifying static binary was created...' && \
-              ls -la prebuilt/linux-aarch64/bin/ && \
-              file prebuilt/linux-aarch64/bin/fastqr && \
+              echo '📦 Building libqrencode from source (static)...'
+              cd /tmp
+              wget https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz
+              tar -xzf v4.1.1.tar.gz
+              cd libqrencode-4.1.1
+              ./autogen.sh
+              ./configure --enable-static --disable-shared --without-tools --prefix=/usr/local
+              make -j\$(nproc)
+              make install
+              ldconfig
+              echo '✅ libqrencode installed:'
+              ls -la /usr/local/lib/libqrencode.*
 
-              echo '🧪 Testing binary...' && \
+              echo '🔨 Building fastqr binary...'
+              cd /workspace
+              chmod +x scripts/build-binaries.sh
+              ./scripts/build-binaries.sh
+
+              echo '🔍 Verifying binary...'
+              ls -la prebuilt/linux-aarch64/bin/
+              file prebuilt/linux-aarch64/bin/fastqr
+
+              echo '📋 Checking dependencies (should only show linux-vdso, libc, libpthread, libm, libdl):'
+              ldd prebuilt/linux-aarch64/bin/fastqr || echo 'Binary is fully static!'
+
+              echo '🧪 Testing binary...'
               ./prebuilt/linux-aarch64/bin/fastqr -v
+
+              echo '✅ Build complete!'
             "
 
       - name: Upload artifact
