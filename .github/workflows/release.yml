@@ -132,7 +132,7 @@ jobs:
           path: prebuilt/*.tar.gz
 
   build-linux-x86_64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -148,35 +148,41 @@ jobs:
           fi
           echo "📦 Building version: $VERSION"
 
-      - name: Install dependencies
+      - name: Build static binary in Ubuntu 20.04 container
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake libpng-dev zlib1g-dev pkg-config build-essential wget autoconf automake libtool
+          docker run --rm --platform linux/amd64 \
+            -v $PWD:/workspace \
+            -w /workspace \
+            ubuntu:20.04 \
+            bash -c "
+              export DEBIAN_FRONTEND=noninteractive && \
+              apt-get update && \
+              apt-get install -y cmake libpng-dev zlib1g-dev pkg-config build-essential wget autoconf automake libtool && \
 
-          cd /tmp
-          wget https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz
-          tar -xzf v4.1.1.tar.gz
-          cd libqrencode-4.1.1
-          ./autogen.sh
-          ./configure --enable-static --disable-shared --without-tools
-          make -j$(nproc)
-          sudo make install
-          sudo ldconfig
+              cd /tmp && \
+              wget https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz && \
+              tar -xzf v4.1.1.tar.gz && \
+              cd libqrencode-4.1.1 && \
+              ./autogen.sh && \
+              ./configure --enable-static --disable-shared --without-tools && \
+              make -j\$(nproc) && \
+              make install && \
+              ldconfig && \
 
-          echo "✅ libqrencode built and installed"
-          ls -la /usr/local/lib/libqrencode.*
+              echo '✅ libqrencode built and installed' && \
+              ls -la /usr/local/lib/libqrencode.* && \
 
-      - name: Build static binary
-        run: |
-          chmod +x scripts/build-binaries.sh
-          ./scripts/build-binaries.sh
+              cd /workspace && \
+              chmod +x scripts/build-binaries.sh && \
+              ./scripts/build-binaries.sh && \
 
-          echo "🔍 Verifying static binary was created..."
-          ls -la prebuilt/linux-x86_64/bin/
-          file prebuilt/linux-x86_64/bin/fastqr
+              echo '🔍 Verifying static binary was created...' && \
+              ls -la prebuilt/linux-x86_64/bin/ && \
+              file prebuilt/linux-x86_64/bin/fastqr && \
 
-          echo "🧪 Testing binary..."
-          ./prebuilt/linux-x86_64/bin/fastqr -v
+              echo '🧪 Testing binary...' && \
+              ./prebuilt/linux-x86_64/bin/fastqr -v
+            "
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -185,7 +191,7 @@ jobs:
           path: prebuilt/*.tar.gz
 
   build-linux-arm64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -211,6 +217,7 @@ jobs:
             -w /workspace \
             arm64v8/ubuntu:20.04 \
             bash -c "
+              export DEBIAN_FRONTEND=noninteractive && \
               apt-get update && \
               apt-get install -y cmake libpng-dev zlib1g-dev pkg-config build-essential wget autoconf automake libtool && \
 
