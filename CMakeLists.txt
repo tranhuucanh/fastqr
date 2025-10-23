@@ -134,12 +134,14 @@ if(NOT BUILD_SHARED_LIBS)
                 ${PNG_STATIC_LIBRARY}
                 ${ZLIB_STATIC_LIBRARY}
         )
-
+        
         # On Linux, ensure FULL static linking (no GLIBC dependency)
         if(UNIX AND NOT APPLE)
             target_link_options(fastqr-cli PRIVATE
                 -static
             )
+            # Add pthread for static linking (required by libstdc++ and libqrencode)
+            target_link_libraries(fastqr-cli PRIVATE pthread)
         endif()
     else()
         message(WARNING "Static libraries not found, falling back to dynamic linking")
