@@ -38,6 +38,7 @@ class FastQR
         // Try to find the binary (pre-built first, then system)
         $binaryPaths = [
             __DIR__ . "/../../prebuilt/$platform/bin/fastqr",  // Pre-built binary (AppImage for Linux)
+            __DIR__ . "/../../prebuilt/$platform/bin/fastqr-wrapper",  // Wrapper script for FUSE issues
             '/usr/local/bin/fastqr',                            // System install
             '/usr/bin/fastqr',
             __DIR__ . '/../../../build/fastqr',                 // Local build
@@ -45,7 +46,7 @@ class FastQR
 
         foreach ($binaryPaths as $path) {
             if (file_exists($path) && is_executable($path)) {
-                // For Linux, test if AppImage can run
+                // For Linux, test if AppImage or wrapper can run
                 if ($os === 'linux' && strpos($path, 'prebuilt') !== false) {
                     try {
                         $output = shell_exec(escapeshellarg($path) . ' -v 2>&1');
@@ -54,7 +55,7 @@ class FastQR
                             return $path;
                         }
                     } catch (Exception $e) {
-                        // AppImage failed, continue to next path
+                        // AppImage/wrapper failed, continue to next path
                         continue;
                     }
                 } else {

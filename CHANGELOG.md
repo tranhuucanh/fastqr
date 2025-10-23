@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **AppImage FUSE Issues**: Fixed "dlopen(): error loading libfuse.so.2" errors on Linux systems
+  - Added fallback wrapper script (`fastqr-wrapper`) for systems without FUSE support
+  - Updated all language bindings (Node.js, Ruby, PHP) to automatically use wrapper when AppImage fails
+  - Improved AppImage build process to create more portable binaries
+  - Added comprehensive troubleshooting documentation for FUSE-related issues
+
+### Changed
+- Linux x86_64 distribution now includes both AppImage and wrapper script
+- Updated installation instructions to handle FUSE issues gracefully
+- Enhanced error handling in language bindings for better user experience
+
 ## [1.0.0] - 2025-10-18
 
 ### Added

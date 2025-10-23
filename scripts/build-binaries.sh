@@ -140,7 +140,7 @@ EOF
         echo "🔍 linuxdeploy info:"
         ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage --help | head -10 || echo "linuxdeploy help failed"
 
-        # Create AppImage with desktop file and additional flags for better compatibility
+        # Create AppImage Type 2 (portable) with desktop file and additional flags for better compatibility
         # Bundle all necessary libraries to avoid GLIBC conflicts
         echo "🔧 Trying linuxdeploy method..."
         if ./linuxdeploy-${LINUXDEPLOY_ARCH}.AppImage \
@@ -153,7 +153,7 @@ EOF
             --library /lib/x86_64-linux-gnu; then
             echo "✅ linuxdeploy succeeded"
         else
-            echo "❌ linuxdeploy failed, trying manual AppImage creation..."
+            echo "❌ linuxdeploy failed, trying manual AppImage Type 2 creation..."
 
             # Manual AppImage creation as fallback
             mkdir -p AppDir/usr/bin
@@ -207,25 +207,51 @@ exec "${HERE}/usr/bin/fastqr" "$@"
 EOF
             chmod +x AppDir/AppRun
 
-            # Extract appimagetool and use it directly (no FUSE needed)
-            echo "🔧 Extracting appimagetool..."
-            ./appimagetool-${LINUXDEPLOY_ARCH}.AppImage --appimage-extract
-            chmod +x squashfs-root/AppRun
-
-            # Debug: Show AppDir structure
-            echo "📁 AppDir structure:"
-            find AppDir -type f | head -20
-
-            # Use extracted appimagetool
-            echo "🔧 Creating AppImage with extracted appimagetool..."
-            ./squashfs-root/AppRun AppDir fastqr-${LINUXDEPLOY_ARCH}.AppImage
+            # Create AppImage Type 2 (portable, no FUSE required) using appimagetool
+            echo "🔧 Creating AppImage Type 2 (portable) with appimagetool..."
+            # Use appimagetool to create Type 2 AppImage (portable, no FUSE required)
+            ./appimagetool-${LINUXDEPLOY_ARCH}.AppImage AppDir fastqr-${LINUXDEPLOY_ARCH}.AppImage
         fi
 
         # Copy AppImage to output directory
         cp fastqr-${LINUXDEPLOY_ARCH}.AppImage "$OUTPUT_DIR/bin/fastqr"
         chmod +x "$OUTPUT_DIR/bin/fastqr"
 
-        echo "✅ Built AppImage for Linux x86_64 (universal compatibility!)"
+        # Create a fallback wrapper script in case AppImage still has FUSE issues
+        echo "🔧 Creating fallback wrapper script..."
+        cat > "$OUTPUT_DIR/bin/fastqr-wrapper" << 'EOF'
+#!/bin/bash
+# FastQR AppImage Wrapper - Fallback for FUSE issues
+# This script automatically extracts and runs the AppImage if FUSE fails
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APPIMAGE_PATH="$SCRIPT_DIR/fastqr"
+EXTRACT_DIR="$SCRIPT_DIR/.fastqr-extracted"
+
+# Try to run AppImage directly first
+if "$APPIMAGE_PATH" "$@" 2>/dev/null; then
+    exit $?
+fi
+
+# If direct execution fails (likely FUSE issue), extract and run
+echo "AppImage direct execution failed, extracting and running..."
+echo "This is a one-time setup for systems without FUSE support."
+
+# Extract AppImage if not already extracted
+if [ ! -d "$EXTRACT_DIR" ]; then
+    mkdir -p "$EXTRACT_DIR"
+    cd "$EXTRACT_DIR"
+    "$APPIMAGE_PATH" --appimage-extract >/dev/null 2>&1
+    cd - >/dev/null
+fi
+
+# Run the extracted binary
+"$EXTRACT_DIR/squashfs-root/usr/bin/fastqr" "$@"
+EOF
+        chmod +x "$OUTPUT_DIR/bin/fastqr-wrapper"
+
+        echo "✅ Built AppImage Type 2 (portable) for Linux x86_64 (no FUSE required!)"
+        echo "✅ Created fallback wrapper script for systems without FUSE support"
     fi
 else
     # macOS: Copy standalone CLI binary

@@ -74,7 +74,9 @@ module FastQR
         binary_path = File.join(base_dir, platform, 'bin', 'fastqr')
 
         if platform.start_with?('linux')
-          # Linux: Check for AppImage first
+          # Linux: Check for AppImage first, then wrapper script
+          wrapper_path = File.join(base_dir, platform, 'bin', 'fastqr-wrapper')
+
           if File.exist?(binary_path) && File.executable?(binary_path)
             # Test if AppImage can run (version check)
             begin
@@ -83,7 +85,17 @@ module FastQR
                 return binary_path
               end
             rescue => e
-              # AppImage failed, continue to fallback
+              # AppImage failed (likely FUSE issue), try wrapper script
+              if File.exist?(wrapper_path) && File.executable?(wrapper_path)
+                begin
+                  output = `#{wrapper_path} -v 2>&1`.strip
+                  if $?.success? && output.include?('FastQR')
+                    return wrapper_path
+                  end
+                rescue => wrapper_error
+                  # Wrapper also failed, continue to fallback
+                end
+              end
             end
           end
         else

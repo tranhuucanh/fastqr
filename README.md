@@ -131,11 +131,19 @@ brew install fastqr
 VERSION="1.0.21"
 wget https://github.com/tranhuucanh/fastqr/releases/download/v${VERSION}/fastqr-${VERSION}-linux-x86_64.tar.gz
 tar -xzf fastqr-${VERSION}-linux-x86_64.tar.gz
-sudo cp linux-x86_64/bin/fastqr /usr/local/bin/
-sudo chmod +x /usr/local/bin/fastqr
 
-# Verify installation
-fastqr --version
+# Try AppImage first
+cd linux-x86_64/bin
+chmod +x fastqr
+./fastqr --version
+
+# If you get FUSE errors, use the wrapper script instead:
+chmod +x fastqr-wrapper
+./fastqr-wrapper --version
+
+# Install system-wide (optional)
+sudo cp fastqr /usr/local/bin/
+sudo chmod +x /usr/local/bin/fastqr
 ```
 
 **Linux (ARM64/aarch64):**

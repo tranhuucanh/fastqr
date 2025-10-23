@@ -10,6 +10,22 @@ brew tap tranhuucanh/fastqr
 brew install fastqr
 ```
 
+### Linux (AppImage)
+```bash
+# Download the AppImage
+wget https://github.com/tranhuucanh/fastqr/releases/download/v1.0.0/fastqr-1.0.0-linux-x86_64.tar.gz
+tar -xzf fastqr-1.0.0-linux-x86_64.tar.gz
+cd linux-x86_64/bin
+
+# Make executable and run
+chmod +x fastqr
+./fastqr -v
+
+# If you get FUSE errors, use the wrapper script instead:
+chmod +x fastqr-wrapper
+./fastqr-wrapper -v
+```
+
 ### Ubuntu/Debian
 ```bash
 wget https://github.com/tranhuucanh/fastqr/releases/download/v1.0.0/fastqr-1.0.0-linux-x64.deb
@@ -455,6 +471,32 @@ fastqr -F products.txt qr_codes/ -s 500 -o
 1. Increase logo size: `-p 30`
 2. Use high error correction: `-e H`
 3. Check logo file exists and is readable
+
+### AppImage FUSE Issues (Linux)
+If you get errors like "dlopen(): error loading libfuse.so.2" when running the AppImage:
+
+1. **Use the wrapper script** (recommended):
+   ```bash
+   ./fastqr-wrapper -v
+   ```
+
+2. **Install FUSE** (alternative):
+   ```bash
+   # Ubuntu/Debian
+   sudo apt install libfuse2
+
+   # Fedora/RHEL
+   sudo dnf install fuse-libs
+
+   # Arch Linux
+   sudo pacman -S fuse2
+   ```
+
+3. **Extract manually** (fallback):
+   ```bash
+   ./fastqr --appimage-extract
+   ./squashfs-root/usr/bin/fastqr -v
+   ```
 
 ## Getting Help
 

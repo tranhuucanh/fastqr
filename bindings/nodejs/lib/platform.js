@@ -45,7 +45,9 @@ function findFastQRBinary() {
   const binaryPath = path.join(prebuiltDir, 'bin', 'fastqr');
 
   if (platform.startsWith('linux')) {
-    // Linux: Check for AppImage first
+    // Linux: Check for AppImage first, then wrapper script
+    const wrapperPath = path.join(prebuiltDir, 'bin', 'fastqr-wrapper');
+
     if (fs.existsSync(binaryPath) && fs.accessSync(binaryPath, fs.constants.X_OK)) {
       try {
         // Test if AppImage can run (version check)
@@ -54,7 +56,17 @@ function findFastQRBinary() {
           return binaryPath;
         }
       } catch (error) {
-        // AppImage failed, continue to fallback
+        // AppImage failed (likely FUSE issue), try wrapper script
+        if (fs.existsSync(wrapperPath) && fs.accessSync(wrapperPath, fs.constants.X_OK)) {
+          try {
+            const output = execSync(`${wrapperPath} -v`, { encoding: 'utf8', stdio: 'pipe' });
+            if (output.includes('FastQR')) {
+              return wrapperPath;
+            }
+          } catch (wrapperError) {
+            // Wrapper also failed, continue to fallback
+          }
+        }
       }
     }
   } else {
