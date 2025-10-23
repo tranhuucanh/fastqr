@@ -113,10 +113,11 @@ if(NOT BUILD_SHARED_LIBS)
         NAMES libz.a
         PATHS
             /usr/local/lib
+            /opt/homebrew/lib
+            /opt/homebrew/opt/zlib/lib
             /usr/lib
             /usr/lib/x86_64-linux-gnu
             /usr/lib/aarch64-linux-gnu
-            /opt/homebrew/lib
         NO_DEFAULT_PATH
     )
 

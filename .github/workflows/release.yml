@@ -164,7 +164,7 @@ jobs:
 
               echo '📦 Building zlib from source (static)...'
               cd /tmp
-              wget https://zlib.net/zlib-1.3.tar.gz
+              wget https://github.com/madler/zlib/releases/download/v1.3/zlib-1.3.tar.gz
               tar -xzf zlib-1.3.tar.gz
               cd zlib-1.3
               ./configure --static --prefix=/usr/local
@@ -258,7 +258,7 @@ jobs:
 
               echo '📦 Building zlib from source (static)...'
               cd /tmp
-              wget https://zlib.net/zlib-1.3.tar.gz
+              wget https://github.com/madler/zlib/releases/download/v1.3/zlib-1.3.tar.gz
               tar -xzf zlib-1.3.tar.gz
               cd zlib-1.3
               ./configure --static --prefix=/usr/local
