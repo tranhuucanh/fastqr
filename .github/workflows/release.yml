@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: |
           set -e
-          brew install cmake qrencode pkg-config
+          brew install cmake qrencode pkg-config zlib
           brew install libpng || brew upgrade libpng || true
 
           echo "=== Verifying installations ==="
@@ -59,6 +59,10 @@ jobs:
             echo "❌ ERROR: libpng version too old: $PKG_PNG_VER"
             exit 1
           fi
+          
+          echo "=== zlib location ==="
+          brew --prefix zlib
+          ls -la $(brew --prefix zlib)/lib/libz.a || echo "⚠️ libz.a not found"
 
           echo "✅ All dependencies verified"
 
@@ -96,7 +100,7 @@ jobs:
       - name: Install dependencies
         run: |
           set -e
-          brew install cmake qrencode pkg-config
+          brew install cmake qrencode pkg-config zlib
           brew install libpng || brew upgrade libpng || true
 
           echo "=== Verifying installations ==="
@@ -114,6 +118,10 @@ jobs:
             echo "❌ ERROR: libpng version too old: $PKG_PNG_VER"
             exit 1
           fi
+
+          echo "=== zlib location ==="
+          brew --prefix zlib
+          ls -la $(brew --prefix zlib)/lib/libz.a || echo "⚠️ libz.a not found"
 
           echo "✅ All dependencies verified"
 
