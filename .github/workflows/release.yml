@@ -132,7 +132,7 @@ jobs:
           path: prebuilt/*.tar.gz
 
   build-linux-x86_64:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
 
@@ -151,7 +151,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libpng-dev pkg-config build-essential wget autoconf automake libtool
+          sudo apt-get install -y cmake libpng-dev zlib1g-dev pkg-config build-essential wget autoconf automake libtool
 
           cd /tmp
           wget https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz
@@ -166,21 +166,17 @@ jobs:
           echo "✅ libqrencode built and installed"
           ls -la /usr/local/lib/libqrencode.*
 
-      - name: Build AppImage
+      - name: Build static binary
         run: |
           chmod +x scripts/build-binaries.sh
           ./scripts/build-binaries.sh
 
-          echo "🔍 Verifying AppImage was created..."
+          echo "🔍 Verifying static binary was created..."
           ls -la prebuilt/linux-x86_64/bin/
           file prebuilt/linux-x86_64/bin/fastqr
 
-          echo "🧪 Testing AppImage..."
-          # AppImage needs FUSE to run, but we can extract and test the binary
-          echo "📦 Extracting AppImage to test binary..."
-          ./prebuilt/linux-x86_64/bin/fastqr --appimage-extract
-          echo "🧪 Testing extracted binary..."
-          ./squashfs-root/usr/bin/fastqr -v
+          echo "🧪 Testing binary..."
+          ./prebuilt/linux-x86_64/bin/fastqr -v
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -189,7 +185,7 @@ jobs:
           path: prebuilt/*.tar.gz
 
   build-linux-arm64:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
 
@@ -208,15 +204,15 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
-      - name: Build AppImage in ARM64 container
+      - name: Build static binary in ARM64 container
         run: |
           docker run --rm --platform linux/arm64 \
             -v $PWD:/workspace \
             -w /workspace \
-            arm64v8/ubuntu:22.04 \
+            arm64v8/ubuntu:20.04 \
             bash -c "
               apt-get update && \
-              apt-get install -y cmake libpng-dev pkg-config build-essential wget autoconf automake libtool && \
+              apt-get install -y cmake libpng-dev zlib1g-dev pkg-config build-essential wget autoconf automake libtool && \
 
               cd /tmp && \
               wget https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz && \
@@ -235,7 +231,7 @@ jobs:
               chmod +x scripts/build-binaries.sh && \
               ./scripts/build-binaries.sh && \
 
-              echo '🔍 Verifying binary was created...' && \
+              echo '🔍 Verifying static binary was created...' && \
               ls -la prebuilt/linux-aarch64/bin/ && \
               file prebuilt/linux-aarch64/bin/fastqr && \
 
