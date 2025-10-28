@@ -31,7 +31,7 @@ Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. 
 
 🐘 **PHP:** [![Composer](https://img.shields.io/badge/Composer-fastqr-blue.svg)](https://packagist.org/packages/fastqr/fastqr) [![Packagist Downloads](https://img.shields.io/packagist/dt/fastqr/fastqr)](https://packagist.org/packages/fastqr/fastqr)
 
-📦 **Total:** [![GitHub Downloads](https://img.shields.io/github/downloads/tranhuucanh/fastqr/total)](https://github.com/tranhuucanh/fastqr/releases)
+📦 **CLI:** [![GitHub Downloads](https://img.shields.io/github/downloads/tranhuucanh/fastqr/total)](https://github.com/tranhuucanh/fastqr/releases)
 
 </div>
 
