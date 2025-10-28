@@ -207,8 +207,7 @@ class QrCodesController < ApplicationController
 
     # Generate QR code
     FastQR.generate(url, filepath.to_s,
-      width: 500,
-      height: 500,
+      size: 500,
       error_level: 'M'
     )
 
@@ -222,8 +221,7 @@ class QrCodesController < ApplicationController
     output_path = Rails.root.join('tmp', "qr_#{Time.now.to_i}.png")
 
     FastQR.generate(data, output_path.to_s,
-      width: 600,
-      height: 600,
+      size: 600,
       logo: logo_path.to_s,
       logo_size: 25,
       error_level: 'H',
@@ -256,8 +254,7 @@ class Event < ApplicationRecord
     INFO
 
     FastQR.generate(event_info, qr_code_path.to_s,
-      width: 500,
-      height: 500,
+      size: 500,
       error_level: 'H'
     )
   end
@@ -300,8 +297,7 @@ class GenerateQrCodeJob < ApplicationJob
     FileUtils.mkdir_p(File.dirname(output_path))
 
     FastQR.generate(vcard, output_path.to_s,
-      width: 600,
-      height: 600,
+      size: 600,
       error_level: 'H'
     )
 
@@ -358,7 +354,7 @@ module Api
       private
 
       def qr_params
-        params.permit(:data, :width, :height, :error_level, :quality)
+        params.permit(:data, :size, :error_level, :quality)
       end
 
       def build_options(params)
@@ -387,8 +383,7 @@ urls = [
 
 urls.each_with_index do |url, index|
   FastQR.generate(url, "qr_#{index + 1}.png",
-    width: 500,
-    height: 500
+    size: 500
   )
 end
 ```
@@ -400,8 +395,7 @@ def generate_branded_qr(data, brand_color)
   r, g, b = brand_color
 
   FastQR.generate(data, "branded_qr.png",
-    width: 600,
-    height: 600,
+    size: 600,
     foreground: [r, g, b],
     background: [255, 255, 255],
     error_level: 'H'
@@ -416,8 +410,7 @@ generate_branded_qr("Company Data", [0, 120, 215])  # Microsoft blue
 ```ruby
 begin
   FastQR.generate("Data", "output.png",
-    width: 1000,
-    height: 1000
+    size: 1000
   )
   puts "✓ QR code generated successfully"
 rescue FastQR::Error => e
@@ -431,8 +424,8 @@ end
 
 ```ruby
 class QrCodeValidator
-  def self.valid_size?(width, height)
-    width.between?(100, 5000) && height.between?(100, 5000)
+  def self.valid_size?(size)
+    size.between?(100, 5000)
   end
 
   def self.valid_error_level?(level)
@@ -442,10 +435,9 @@ class QrCodeValidator
   def self.validate_options(options)
     errors = []
 
-    if options[:width] || options[:height]
-      w = options[:width] || 300
-      h = options[:height] || 300
-      errors << "Invalid size" unless valid_size?(w, h)
+    if options[:size]
+      size = options[:size]
+      errors << "Invalid size" unless valid_size?(size)
     end
 
     if options[:error_level]
@@ -482,8 +474,7 @@ RSpec.describe 'QR Code Generation' do
 
   it 'generates QR code with custom options' do
     result = FastQR.generate("Test", output_path.to_s,
-      width: 500,
-      height: 500,
+      size: 500,
       error_level: 'H'
     )
 

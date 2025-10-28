@@ -229,8 +229,7 @@ app.post('/api/qr/generate', async (req, res) => {
 
     // Generate QR code
     fastqr.generate(data, filepath, {
-      width: options.width || 500,
-      height: options.height || 500,
+      size: options.size || 500,
       errorLevel: options.errorLevel || 'M'
     });
 
@@ -343,8 +342,7 @@ app.post('/api/qr/base64', async (req, res) => {
 
     // Generate QR code
     fastqr.generate(data, filepath, {
-      width: 500,
-      height: 500
+      size: 500
     });
 
     // Read file and convert to base64
@@ -375,8 +373,7 @@ import * as fastqr from 'fastqr';
 
 // Generate with type checking
 fastqr.generate('Hello TypeScript', 'output.png', {
-  width: 600,
-  height: 600,
+  size: 600,
   foreground: [0, 0, 255],
   errorLevel: 'H'
 });
@@ -395,8 +392,7 @@ interface QROptions {
 }
 
 const options: QROptions = {
-  width: 800,
-  height: 800,
+  size: 800,
   errorLevel: 'H',
   foreground: [255, 0, 0]
 };
@@ -456,8 +452,7 @@ function generateQRAsync(data, outputPath, options) {
 async function createQR() {
   try {
     await generateQRAsync('Async Data', 'async_qr.png', {
-      width: 500,
-      height: 500
+      size: 500
     });
     console.log('✓ QR code generated');
   } catch (error) {
@@ -475,8 +470,7 @@ async function generateBatch(items) {
     const filepath = path.join(__dirname, 'output', filename);
 
     return generateQRAsync(item.data, filepath, {
-      width: item.width || 500,
-      height: item.height || 500
+      size: item.size || 500
     });
   });
 
@@ -514,8 +508,7 @@ async function generateBrandedQR(data, brandColor, logoPath) {
   const filename = `branded_${Date.now()}.png`;
 
   fastqr.generate(data, filename, {
-    width: 800,
-    height: 800,
+    size: 800,
     foreground: [r, g, b],
     logo: logoPath,
     logoSize: 25,
@@ -552,8 +545,7 @@ class QRCodeService {
     const filepath = path.join(this.outputDir, filename);
 
     const defaultOptions = {
-      width: 500,
-      height: 500,
+      size: 500,
       errorLevel: 'M'
     };
 
@@ -591,8 +583,7 @@ class QRCodeService {
 const qrService = new QRCodeService();
 
 const { filename } = qrService.generate('Hello World', {
-  width: 600,
-  height: 600
+  size: 600
 });
 
 const { filename: logoQR } = qrService.generateWithLogo(
@@ -633,8 +624,7 @@ describe('FastQR', () => {
 
   test('generates QR code with options', () => {
     const result = fastqr.generate('Test', outputPath, {
-      width: 500,
-      height: 500,
+      size: 500,
       errorLevel: 'H'
     });
 

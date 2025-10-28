@@ -187,7 +187,7 @@ fastqr -l logo.png -p 25 "Company" logo_25.png
 fastqr -e H -l logo.png "Company" logo_high_ec.png
 
 # Full example with logo
-fastqr -s 800x800 \
+fastqr -s 800 \
        -e H \
        -l company_logo.png \
        -p 30 \

@@ -48,7 +48,7 @@ brew install fastqr  # macOS
 
 # Use
 fastqr "Hello World" qr.png
-fastqr -s 1000x1000 -f 255,0,0 "Large Red QR" large.png
+fastqr -s 1000 -f 255,0,0 "Large Red QR" large.png
 ```
 [→ Full CLI Guide](CLI_USAGE.md)
 
@@ -57,7 +57,7 @@ fastqr -s 1000x1000 -f 255,0,0 "Large Red QR" large.png
 gem install fastqr
 
 require 'fastqr'
-FastQR.generate("Hello World", "qr.png", width: 500, height: 500)
+FastQR.generate("Hello World", "qr.png", size: 500)
 ```
 [→ Full Ruby Guide](RUBY_USAGE.md)
 
@@ -66,7 +66,7 @@ FastQR.generate("Hello World", "qr.png", width: 500, height: 500)
 npm install fastqr-pro
 
 const fastqr = require('fastqr');
-fastqr.generate('Hello World', 'qr.png', { width: 500, height: 500 });
+fastqr.generate('Hello World', 'qr.png', { size: 500 });
 ```
 [→ Full Node.js Guide](NODEJS_USAGE.md)
 
@@ -75,7 +75,7 @@ fastqr.generate('Hello World', 'qr.png', { width: 500, height: 500 });
 composer require fastqr/fastqr
 
 use FastQR\FastQR;
-FastQR::generate('Hello World', 'qr.png', ['width' => 500, 'height' => 500]);
+FastQR::generate('Hello World', 'qr.png', ['size' => 500]);
 ```
 [→ Full PHP Guide](PHP_USAGE.md)
 
@@ -84,7 +84,7 @@ FastQR::generate('Hello World', 'qr.png', ['width' => 500, 'height' => 500]);
 ### 1. Website QR Codes
 Generate QR codes for URLs with custom branding:
 ```bash
-fastqr -s 600x600 -l logo.png -e H "https://example.com" website_qr.png
+fastqr -s 600 -l logo.png -e H "https://example.com" website_qr.png
 ```
 
 ### 2. Business Cards (vCard)
@@ -114,7 +114,7 @@ URL: https://event.com" event.png
 ### 5. Product Labels
 High-resolution QR for printing:
 ```bash
-fastqr -s 2000x2000 -q 100 -e H "SKU-12345" product_qr.png
+fastqr -s 2000 -q 100 -e H "SKU-12345" product_qr.png
 ```
 
 ## Platform Comparison
@@ -135,7 +135,7 @@ fastqr -s 2000x2000 -q 100 -e H "SKU-12345" product_qr.png
 
 | Option | CLI | Ruby | Node.js | PHP | Default |
 |--------|-----|------|---------|-----|---------|
-| **Size** | `-s 500x500` | `width: 500, height: 500` | `{width: 500, height: 500}` | `['width' => 500, 'height' => 500]` | 300x300 |
+| **Size** | `-s 500` | `size: 500` | `{size: 500}` | `['size' => 500]` | 300 |
 | **Foreground** | `-f 255,0,0` | `foreground: [255,0,0]` | `{foreground: [255,0,0]}` | `['foreground' => [255,0,0]]` | [0,0,0] |
 | **Background** | `-b 255,255,200` | `background: [255,255,200]` | `{background: [255,255,200]}` | `['background' => [255,255,200]]` | [255,255,255] |
 | **Error Level** | `-e H` | `error_level: 'H'` | `{errorLevel: 'H'}` | `['errorLevel' => 'H']` | 'M' |

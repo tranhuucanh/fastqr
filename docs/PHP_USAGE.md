@@ -182,7 +182,6 @@ class QRCodeController extends Controller
         $validated = $request->validate([
             'data' => 'required|string',
             'size' => 'nullable|integer|min:100|max:5000',
-            'height' => 'nullable|integer|min:100|max:5000',
         ]);
 
         $filename = 'qr_' . Str::random(16) . '.png';
@@ -194,8 +193,7 @@ class QRCodeController extends Controller
         }
 
         FastQR::generate($validated['data'], $path, [
-            'width' => $validated['width'] ?? 500,
-            'height' => $validated['height'] ?? 500,
+            'size' => $validated['size'] ?? 500,
             'errorLevel' => 'M'
         ]);
 
@@ -223,7 +221,6 @@ class QRCodeController extends Controller
 
         FastQR::generate($validated['data'], $qrPath, [
             'size' => 800,
-            'height' => 800,
             'logo' => $fullLogoPath,
             'logoSize' => 25,
             'errorLevel' => 'H'
@@ -247,8 +244,7 @@ class QRCodeController extends Controller
         }
 
         FastQR::generate($data, $path, [
-            'size' => 600,
-            'height' => 600
+            'size' => 600
         ]);
 
         return response()->download($path)->deleteFileAfterSend(true);
@@ -605,7 +601,7 @@ function fastqr_shortcode($atts) {
 
 Usage in WordPress:
 ```
-[fastqr data="https://example.com" width="400" height="400"]
+[fastqr data="https://example.com" size="400"]
 ```
 
 ## Plain PHP Examples
