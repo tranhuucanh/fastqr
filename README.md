@@ -73,7 +73,7 @@ Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. 
 
 </div>
 
-<details closed>
+<details open>
 <summary>📊 <b>CLI Performance: FastQR vs qrencode</b></summary>
 
 <br/>
@@ -89,7 +89,7 @@ Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. 
 
 </details>
 
-<details closed>
+<details open>
 <summary>💎 <b>Ruby Performance: FastQR vs rqrcode</b></summary>
 
 <br/>
@@ -105,7 +105,7 @@ Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. 
 
 </details>
 
-<details closed>
+<details open>
 <summary>🟢 <b>Node.js Performance: FastQR vs qrcode</b></summary>
 
 <br/>
@@ -121,7 +121,7 @@ Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. 
 
 </details>
 
-<details closed>
+<details open>
 <summary>🐘 <b>PHP Performance: FastQR vs endroid/qr-code</b></summary>
 
 <br/>
