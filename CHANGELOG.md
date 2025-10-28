@@ -43,8 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 - Comprehensive README with examples
-- BUILD.md with detailed compilation instructions
-- DISTRIBUTION.md with publishing guides for all package managers
+- Complete usage guides for CLI, Ruby, Node.js, and PHP
 - API documentation for all languages
 
 [1.0.0]: https://github.com/tranhuucanh/fastqr/releases/tag/v1.0.0

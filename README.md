@@ -183,8 +183,6 @@ make
 sudo make install
 ```
 
-See [INSTALL.md](INSTALL.md) for more options.
-
 ---
 
 ## 🎯 Quick Start

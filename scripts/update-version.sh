@@ -36,12 +36,6 @@ rm -f fastqr.gemspec.bak
 sed -i.bak "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" bindings/nodejs/package.json
 rm -f bindings/nodejs/package.json.bak
 
-# Update composer.json (PHP)
-if [ -f composer.json ]; then
-    sed -i.bak "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" composer.json
-    rm -f composer.json.bak
-fi
-
 # Update documentation
 for doc in README.md docs/*.md; do
     if [ -f "$doc" ]; then

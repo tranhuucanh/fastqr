@@ -55,7 +55,13 @@ Thank you for your interest in contributing to FastQR! This document provides gu
 
 ## 🏗️ Development Setup
 
-See [BUILD.md](BUILD.md) for detailed build instructions.
+Build the project locally:
+
+```bash
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+make
+```
 
 ## 📄 License
 

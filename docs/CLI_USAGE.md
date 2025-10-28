@@ -20,8 +20,9 @@ sudo dpkg -i fastqr-1.0.0-linux-x64.deb
 ```bash
 git clone https://github.com/tranhuucanh/fastqr.git
 cd fastqr
-./build.sh
-cd build
+mkdir build && cd build
+cmake ..
+make
 sudo make install
 ```
 

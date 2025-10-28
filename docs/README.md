@@ -8,12 +8,6 @@ FastQR is a fast, powerful QR code generator with full UTF-8 support, custom col
 
 ## Quick Links
 
-### Installation & Setup
-- [Installation Guide](../INSTALL.md) - Installation for all platforms
-- [Build Instructions](../BUILD.md) - Build from source
-- [Distribution Guide](../DISTRIBUTION.md) - Publishing to package managers
-- [Pre-built Binaries](../PREBUILT.md) - About pre-compiled binaries
-
 ### Usage Guides
 - **[CLI Usage](CLI_USAGE.md)** - Command-line tool complete guide
 - **[Ruby Usage](RUBY_USAGE.md)** - Ruby and Rails integration
@@ -167,7 +161,7 @@ Pre-built binaries are automatically generated for:
 - macOS (Intel & Apple Silicon)
 - Linux (x86_64 & ARM64)
 
-See [PREBUILT.md](../PREBUILT.md) for details on the build process.
+Binaries are built automatically by GitHub Actions on every tagged release.
 
 ## Support
 

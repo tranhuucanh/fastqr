@@ -8,4 +8,4 @@ This project statically links with:
   Copyright (C) 2006-2017 Kentaro Fukuchi
 
 As required by the LGPL, you can obtain and rebuild this library with modified
-versions of libqrencode. See BUILD.md for details.
+versions of libqrencode. See the README for build instructions.

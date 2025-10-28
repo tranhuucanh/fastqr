@@ -4,26 +4,18 @@ This directory contains scripts for building and releasing FastQR.
 
 ## Scripts
 
-### 1. `build-local.sh`
-Build fastqr locally for testing.
+### 1. `build-binaries.sh`
+Build pre-compiled binaries for distribution.
 
 **Usage:**
 ```bash
-./scripts/build-local.sh
+./scripts/build-binaries.sh
 ```
 
 **What it does:**
-- Cleans build directory
-- Runs CMake configuration
-- Builds fastqr binary
-- Output: `build/fastqr`
-
-**Example:**
-```bash
-./scripts/build-local.sh
-./build/fastqr --version
-./build/fastqr "Hello" test.png
-```
+- Builds static binaries for the current platform
+- Creates tarball in `prebuilt/` directory
+- Used by GitHub Actions for releases
 
 ---
 
@@ -41,7 +33,6 @@ Update version number across all project files.
 - `fastqr.gemspec`
 - `bindings/ruby/lib/fastqr/version.rb`
 - `bindings/nodejs/package.json`
-- `composer.json`
 - All `*.md` files (URLs and version references)
 
 **Example:**
@@ -100,10 +91,12 @@ git commit -m "feat: add new feature"
 git add .
 git commit -m "feat: your changes"
 
-# 2. Build and test locally
-./scripts/build-local.sh
-./build/fastqr --version  # Should show old version
-./build/fastqr "Test" test.png
+# 2. Test locally (optional)
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make
+./fastqr "Test" test.png
+cd ..
 
 # 3. Release new version
 ./scripts/release.sh 1.0.1
@@ -230,9 +223,7 @@ CMakeLists.txt                          → project(fastqr VERSION 1.0.1 ...)
 fastqr.gemspec                          → spec.version = '1.0.1'
 bindings/ruby/lib/fastqr/version.rb     → VERSION = '1.0.1'
 bindings/nodejs/package.json            → "version": "1.0.1"
-composer.json                           → "version": "1.0.1"
 README.md                               → /v1.0.1/fastqr-1.0.1-...
-INSTALL.md                              → /v1.0.1/fastqr-1.0.1-...
 docs/*.md                               → /v1.0.1/fastqr-1.0.1-...
 ```
 
@@ -242,7 +233,7 @@ All changes are committed with message: `chore: bump version to v1.0.1`
 
 ## See Also
 
-- [BUILD.md](../BUILD.md) - Building from source
+- [README.md](../README.md) - Project overview
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - Contributing guidelines
-- [DISTRIBUTION.md](../DISTRIBUTION.md) - Distribution details
+- [CHANGELOG.md](../CHANGELOG.md) - Version history
 

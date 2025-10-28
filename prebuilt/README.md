@@ -89,12 +89,6 @@ sudo cp -r macos-arm64/include/* /usr/local/include/
 sudo ldconfig
 ```
 
-Or use the install script:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/tranhuucanh/fastqr/main/scripts/install.sh | bash
-```
-
 ## Platform Detection
 
 The bindings automatically detect your platform and load the appropriate binary:
@@ -119,12 +113,12 @@ git tag -a v1.0.0 -m "Release 1.0.0"
 git push origin v1.0.0
 ```
 
-This will trigger the `build-binaries.yml` workflow which builds for all platforms.
+This will trigger the release workflow which builds for all platforms.
 
 ## License
 
 The pre-built binaries include statically linked libraries:
 - libqrencode (LGPL 2.1)
 
-As required by LGPL, users can rebuild with different versions. See BUILD.md for instructions.
+As required by LGPL, users can rebuild with different versions by building from source.
 
