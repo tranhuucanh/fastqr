@@ -11,6 +11,7 @@ Generate 1,000 QR codes in **0.37 seconds**. Full UTF-8 support. Custom colors. 
 
 [![GitHub Stars](https://img.shields.io/github/stars/tranhuucanh/fastqr?style=social)](https://github.com/tranhuucanh/fastqr/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/tranhuucanh/fastqr?style=social)](https://github.com/tranhuucanh/fastqr/network/members)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tranhuucanh/fastqr)
 
 [Installation](#-installation) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Benchmarks](#-performance-benchmarks)
 
