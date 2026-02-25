@@ -66,6 +66,10 @@ struct QROptions {
     // Output format
     std::string format = "png";         // png, jpg, webp, etc.
     int quality = 95;                   // For lossy formats (1-100)
+
+    // Margin (quiet zone) around QR code
+    int margin = 0;                     // Margin in pixels (absolute, default: 0)
+    int margin_modules = 4;             // Margin in modules (relative, default: 4 per ISO/IEC 18004)
 };
 
 /**
@@ -120,6 +124,8 @@ typedef struct {
     int logo_size_percent;
     const char* format;
     int quality;
+    int margin;
+    int margin_modules;
 } QROptions;
 
 /**

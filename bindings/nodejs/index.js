@@ -52,6 +52,11 @@ if (platform.isPrebuiltAvailable()) {
       if (options.logo) args.push('-l', options.logo);
       if (options.logoSize) args.push('-p', options.logoSize.toString());
       if (options.quality) args.push('-q', options.quality.toString());
+      if (options.margin !== undefined) {
+        args.push('-m', options.margin.toString());
+      } else if (options.marginModules !== undefined) {
+        args.push('--margin-modules', options.marginModules.toString());
+      }
 
       try {
         execFileSync(cliPath, args, { stdio: 'pipe' });
@@ -93,6 +98,8 @@ if (platform.isPrebuiltAvailable()) {
  * @property {number} [logoSize=20] - Logo size as percentage
  * @property {number} [quality=95] - Image quality (1-100)
  * @property {string} [format='png'] - Output format: 'png', 'jpg', 'webp'
+ * @property {number} [margin=0] - Margin (quiet zone) in pixels (absolute)
+ * @property {number} [marginModules=4] - Margin in modules (relative, ISO standard)
  */
 
 /**
@@ -202,6 +209,11 @@ function generateBatch(dataArray, outputDir, options = {}) {
         if (options.logo) args.push('-l', options.logo);
         if (options.logoSize) args.push('-p', options.logoSize.toString());
         if (options.quality) args.push('-q', options.quality.toString());
+        if (options.margin !== undefined) {
+          args.push('-m', options.margin.toString());
+        } else if (options.marginModules !== undefined) {
+          args.push('--margin-modules', options.marginModules.toString());
+        }
 
         execFileSync(cliPath, args, { stdio: 'pipe' });
 

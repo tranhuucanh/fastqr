@@ -216,6 +216,59 @@ fastqr -l logo.png -p 35 "Large Logo" large_logo.png
 
 **Recommendation:** Use 20-30% for best results. Higher percentages require higher error correction (`-e H`).
 
+### Margin (`-m`, `--margin`)
+
+Add a margin (quiet zone) around the QR code using **absolute pixels**. The margin uses the same color as the background.
+
+**Range:** `0-1000` (pixels)
+
+```bash
+# Small margin (10 pixels)
+fastqr -s 400 -m 10 "Data" qr_margin_10.png
+
+# Medium margin (20 pixels)
+fastqr -s 400 -m 20 "Data" qr_margin_20.png
+
+# Large margin (50 pixels)
+fastqr -s 500 -m 50 "Data" qr_margin_50.png
+
+# Margin with custom background color
+fastqr -s 400 -m 15 -b 255,220,220 "Data" qr_margin_bg.png
+```
+
+**Default:** `0` (no margin)
+
+**Note:** The margin is included in the specified size. For example, `-s 400 -m 10` creates a 400×400 pixel image where the QR code is 380×380 pixels with a 10-pixel margin on all sides.
+
+### Margin Modules (`--margin-modules`)
+
+Add a margin (quiet zone) using **modules** (relative to QR code size). This follows the **ISO/IEC 18004 standard** which recommends 4 modules.
+
+**Range:** `0-50` (modules)
+
+```bash
+# ISO standard (4 modules) - RECOMMENDED
+fastqr -s 500 --margin-modules 4 "Data" qr_iso.png
+
+# No margin (disable default)
+fastqr -s 500 --margin-modules 0 "Data" qr_no_margin.png
+
+# Large quiet zone (8 modules)
+fastqr -s 500 --margin-modules 8 "Data" qr_8modules.png
+
+# With custom background
+fastqr -s 400 --margin-modules 4 -b 255,220,220 "Data" qr_modules_bg.png
+```
+
+**Default:** `4` (4 modules per ISO standard)
+
+**How it works:**
+- Margin is calculated based on QR code module size
+- Auto-scales with output size
+- Example: 500px output with 25×25 QR = 20px/module → 4 modules = 80px margin
+
+**Priority:** When both are specified, `--margin-modules` takes priority over `-m`.
+
 ### Quality (`-q`, `--quality`)
 
 Set image quality for lossy formats (JPG, WebP).
@@ -381,7 +434,15 @@ Thời gian: 20/10/2025
        event.png
 ```
 
-### 8. Maximum Quality Logo QR
+### 8. QR Code with Margin
+```bash
+fastqr -s 400 \
+       -m 20 \
+       "https://example.com" \
+       qr_with_margin.png
+```
+
+### 9. Maximum Quality Logo QR
 ```bash
 fastqr -s 2000 \
        -e H \
@@ -392,7 +453,7 @@ fastqr -s 2000 \
        premium.png
 ```
 
-### 9. Batch Generation (7x faster!)
+### 10. Batch Generation (7x faster!)
 ```bash
 # Create batch file
 cat > products.txt << EOF
@@ -412,6 +473,13 @@ fastqr -F products.txt qr_codes/ -s 500 -o
 - **Medium (500-1000px)**: Print materials, posters
 - **Large (1000-2000px)**: Banners, billboards
 - **Very Large (2000+px)**: High-resolution prints
+
+### Margins
+- **Recommended:** Use `--margin-modules 4` (ISO/IEC 18004 standard)
+- Margin modules auto-scale with QR size
+- For custom control, use `-m` for absolute pixels
+- QR code standard recommends a "quiet zone" of 4 modules
+- Margin automatically uses the background color
 
 ### Error Correction
 - Use `H` level when adding logos

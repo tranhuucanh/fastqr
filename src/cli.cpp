@@ -44,6 +44,8 @@ void print_usage(const char* program_name) {
     std::cout << "  -l, --logo PATH         Path to logo image\n";
     std::cout << "  -p, --logo-size N       Logo size percentage (default: 20)\n";
     std::cout << "  -q, --quality N         Image quality 1-100 (default: 95)\n";
+    std::cout << "  -m, --margin N          Margin (quiet zone) in pixels (default: 0)\n";
+    std::cout << "  --margin-modules N      Margin in modules (default: 4, ISO standard)\n";
     std::cout << "  -F, --file PATH         Batch mode: process text file (one QR per line)\n";
     std::cout << "  -h, --help              Show this help\n";
     std::cout << "  -v, --version           Show version\n\n";
@@ -53,6 +55,8 @@ void print_usage(const char* program_name) {
     std::cout << "  " << program_name << " -s 500 -o \"Optimized\" fast.png\n";
     std::cout << "  " << program_name << " -s 500 -f 255,0,0 \"Red QR\" red_qr.png\n";
     std::cout << "  " << program_name << " -l logo.png \"Company\" qr_with_logo.png\n";
+    std::cout << "  " << program_name << " -s 400 -m 10 \"With margin pixels\" margin.png\n";
+    std::cout << "  " << program_name << " -s 400 --margin-modules 4 \"ISO standard\" iso.png\n";
     std::cout << "  " << program_name << " -F batch.txt output_dir/ -s 500 -o\n";
 }
 
@@ -267,6 +271,27 @@ int main(int argc, char* argv[]) {
             options.quality = atoi(argv[i]);
             if (options.quality < 1 || options.quality > 100) {
                 std::cerr << "Error: Quality must be between 1 and 100\n";
+                return 1;
+            }
+        } else if (arg == "-m" || arg == "--margin") {
+            if (++i >= argc) {
+                std::cerr << "Error: " << arg << " requires an argument\n";
+                return 1;
+            }
+            options.margin = atoi(argv[i]);
+            options.margin_modules = 0;  // Disable margin_modules when using absolute margin
+            if (options.margin < 0 || options.margin > 1000) {
+                std::cerr << "Error: Margin must be between 0 and 1000\n";
+                return 1;
+            }
+        } else if (arg == "--margin-modules") {
+            if (++i >= argc) {
+                std::cerr << "Error: " << arg << " requires an argument\n";
+                return 1;
+            }
+            options.margin_modules = atoi(argv[i]);
+            if (options.margin_modules < 0 || options.margin_modules > 50) {
+                std::cerr << "Error: Margin modules must be between 0 and 50\n";
                 return 1;
             }
         } else if (arg == "-F" || arg == "--file") {

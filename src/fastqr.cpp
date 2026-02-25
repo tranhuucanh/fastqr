@@ -366,6 +366,43 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
         final_size = scale * qr_size;
     }
 
+    // Calculate margin: margin_modules takes priority over margin
+    int margin = 0;
+    if (options.margin_modules > 0) {
+        // Calculate margin from modules (ISO/IEC 18004 standard)
+        // First estimate scale to calculate margin in pixels
+        int temp_inner = final_size;  // Start without margin
+        int estimated_scale = temp_inner / qr_size;
+        margin = options.margin_modules * estimated_scale;
+        
+        // Recalculate with actual margin
+        int inner_size_with_margin = final_size - 2 * margin;
+        if (inner_size_with_margin > 0) {
+            int actual_scale = inner_size_with_margin / qr_size;
+            margin = options.margin_modules * actual_scale;
+        }
+    } else {
+        // Use absolute pixel margin
+        margin = options.margin;
+    }
+    
+    // Validate margin
+    if (margin < 0) {
+        std::cerr << "Error: Margin cannot be negative" << std::endl;
+        return false;
+    }
+    if (margin * 2 >= final_size) {
+        std::cerr << "Error: Margin too large for given size" << std::endl;
+        return false;
+    }
+
+    // Calculate inner size (QR code size excluding margin)
+    int inner_size = final_size - 2 * margin;
+    if (inner_size < qr_size) {
+        std::cerr << "Error: Size too small with margin for QR code" << std::endl;
+        return false;
+    }
+
     // Check if using default black/white colors
     bool is_bw = (options.foreground.r == 0 && options.foreground.g == 0 && options.foreground.b == 0 &&
                   options.background.r == 255 && options.background.g == 255 && options.background.b == 255);
@@ -376,18 +413,16 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
     if (can_use_indexed) {
         // FASTEST PATH: 1-bit indexed PNG (like qrencode)
         // Pack 8 pixels into 1 byte
-        int scale = final_size / qr_size;
+        int scale = inner_size / qr_size;
 
-        if (scale * qr_size == final_size) {
-            // Integer scaling - optimized bit packing
+        if (scale * qr_size == inner_size && margin == 0) {
+            // Integer scaling without margin - optimized bit packing
             int bytes_per_row = (final_size + 7) / 8;
             std::vector<unsigned char> packed_data(bytes_per_row * final_size, 0);
 
-            // Build one template row then replicate vertically
             std::vector<unsigned char> template_row(bytes_per_row);
 
             for (int src_y = 0; src_y < qr_size; src_y++) {
-                // Build template row for this QR row
                 std::memset(template_row.data(), 0, bytes_per_row);
 
                 for (int src_x = 0; src_x < qr_size; src_x++) {
@@ -413,18 +448,50 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
             }
 
             return write_indexed_png(output_path.c_str(), packed_data, final_size, final_size);
+        } else if (scale * qr_size == inner_size && margin > 0) {
+            int bytes_per_row = (final_size + 7) / 8;
+            std::vector<unsigned char> packed_data(bytes_per_row * final_size, 0);
+
+            std::vector<unsigned char> template_row(bytes_per_row);
+
+            for (int src_y = 0; src_y < qr_size; src_y++) {
+                std::memset(template_row.data(), 0, bytes_per_row);
+
+                for (int src_x = 0; src_x < qr_size; src_x++) {
+                    if (qr_data[src_y * qr_size + src_x] & 1) {
+                        int dst_x_start = margin + src_x * scale;
+                        int dst_x_end = dst_x_start + scale;
+
+                        for (int dst_x = dst_x_start; dst_x < dst_x_end; dst_x++) {
+                            int byte_idx = dst_x >> 3;
+                            int bit_idx = 7 - (dst_x & 7);
+                            template_row[byte_idx] |= (1 << bit_idx);
+                        }
+                    }
+                }
+
+                int dst_y_start = margin + src_y * scale;
+                for (int dy = 0; dy < scale; dy++) {
+                    std::memcpy(&packed_data[(dst_y_start + dy) * bytes_per_row],
+                               template_row.data(), bytes_per_row);
+                }
+            }
+
+            return write_indexed_png(output_path.c_str(), packed_data, final_size, final_size);
         } else {
             // Non-integer scaling - use grayscale
-            std::vector<unsigned char> final_image(final_size * final_size);
-            double x_ratio = static_cast<double>(qr_size) / final_size;
-            double y_ratio = static_cast<double>(qr_size) / final_size;
+            std::vector<unsigned char> final_image(final_size * final_size, 255);  // Fill with white
+            double x_ratio = static_cast<double>(qr_size) / inner_size;
+            double y_ratio = static_cast<double>(qr_size) / inner_size;
 
-            for (int y = 0; y < final_size; y++) {
+            for (int y = 0; y < inner_size; y++) {
                 int src_y = static_cast<int>(y * y_ratio);
                 int src_row_idx = src_y * qr_size;
-                for (int x = 0; x < final_size; x++) {
+                for (int x = 0; x < inner_size; x++) {
                     int src_x = static_cast<int>(x * x_ratio);
-                    final_image[y * final_size + x] = (qr_data[src_row_idx + src_x] & 1) ? 0 : 255;
+                    int dst_y = margin + y;
+                    int dst_x = margin + x;
+                    final_image[dst_y * final_size + dst_x] = (qr_data[src_row_idx + src_x] & 1) ? 0 : 255;
                 }
             }
 
@@ -437,24 +504,26 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
         }
     } else if (is_bw) {
         // Black/white but with logo - use RGB to preserve logo colors
-        std::vector<unsigned char> final_image(final_size * final_size * 3);
-        int scale = final_size / qr_size;
+        std::vector<unsigned char> final_image(final_size * final_size * 3, 255);  // Fill with white
+        int scale = inner_size / qr_size;
 
-        if (scale * qr_size == final_size) {
+        if (scale * qr_size == inner_size) {
             // Integer scaling
-            std::vector<unsigned char> scaled_row(final_size * 3);
+            std::vector<unsigned char> scaled_row(final_size * 3, 255);
 
             for (int src_y = 0; src_y < qr_size; src_y++) {
+                std::memset(scaled_row.data(), 255, final_size * 3);
+
                 for (int src_x = 0; src_x < qr_size; src_x++) {
                     unsigned char val = (qr_data[src_y * qr_size + src_x] & 1) ? 0 : 255;
-                    int dst_x_start = src_x * scale;
+                    int dst_x_start = margin + src_x * scale;
                     for (int dx = 0; dx < scale; dx++) {
                         int idx = (dst_x_start + dx) * 3;
                         scaled_row[idx] = scaled_row[idx + 1] = scaled_row[idx + 2] = val;
                     }
                 }
 
-                int dst_y_start = src_y * scale;
+                int dst_y_start = margin + src_y * scale;
                 unsigned char* dst_ptr = &final_image[dst_y_start * final_size * 3];
                 std::memcpy(dst_ptr, scaled_row.data(), final_size * 3);
                 for (int dy = 1; dy < scale; dy++) {
@@ -463,16 +532,18 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
             }
         } else {
             // Non-integer scaling
-            double x_ratio = static_cast<double>(qr_size) / final_size;
-            double y_ratio = static_cast<double>(qr_size) / final_size;
+            double x_ratio = static_cast<double>(qr_size) / inner_size;
+            double y_ratio = static_cast<double>(qr_size) / inner_size;
 
-            for (int y = 0; y < final_size; y++) {
+            for (int y = 0; y < inner_size; y++) {
                 int src_y = static_cast<int>(y * y_ratio);
                 int src_row_idx = src_y * qr_size;
-                for (int x = 0; x < final_size; x++) {
+                for (int x = 0; x < inner_size; x++) {
                     int src_x = static_cast<int>(x * x_ratio);
                     unsigned char val = (qr_data[src_row_idx + src_x] & 1) ? 0 : 255;
-                    int idx = (y * final_size + x) * 3;
+                    int dst_y = margin + y;
+                    int dst_x = margin + x;
+                    int idx = (dst_y * final_size + dst_x) * 3;
                     final_image[idx] = final_image[idx + 1] = final_image[idx + 2] = val;
                 }
             }
@@ -491,23 +562,25 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
 
         if (is_grayscale) {
             // Use grayscale PNG
-            std::vector<unsigned char> final_image(final_size * final_size);
             unsigned char fg = options.foreground.r;
             unsigned char bg = options.background.r;
+            std::vector<unsigned char> final_image(final_size * final_size, bg);  // Fill with background
 
-            int scale = final_size / qr_size;
-            if (scale * qr_size == final_size) {
+            int scale = inner_size / qr_size;
+            if (scale * qr_size == inner_size) {
                 // Integer scaling
-                std::vector<unsigned char> scaled_row(final_size);
+                std::vector<unsigned char> scaled_row(final_size, bg);
 
                 for (int src_y = 0; src_y < qr_size; src_y++) {
+                    std::memset(scaled_row.data(), bg, final_size);
+
                     for (int src_x = 0; src_x < qr_size; src_x++) {
                         unsigned char val = (qr_data[src_y * qr_size + src_x] & 1) ? fg : bg;
-                        int dst_x_start = src_x * scale;
+                        int dst_x_start = margin + src_x * scale;
                         std::memset(&scaled_row[dst_x_start], val, scale);
                     }
 
-                    int dst_y_start = src_y * scale;
+                    int dst_y_start = margin + src_y * scale;
                     unsigned char* dst_ptr = &final_image[dst_y_start * final_size];
                     std::memcpy(dst_ptr, scaled_row.data(), final_size);
                     for (int dy = 1; dy < scale; dy++) {
@@ -516,15 +589,17 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
                 }
             } else {
                 // Non-integer scaling
-                double x_ratio = static_cast<double>(qr_size) / final_size;
-                double y_ratio = static_cast<double>(qr_size) / final_size;
+                double x_ratio = static_cast<double>(qr_size) / inner_size;
+                double y_ratio = static_cast<double>(qr_size) / inner_size;
 
-                for (int y = 0; y < final_size; y++) {
+                for (int y = 0; y < inner_size; y++) {
                     int src_y = static_cast<int>(y * y_ratio);
                     int src_row_idx = src_y * qr_size;
-                    for (int x = 0; x < final_size; x++) {
+                    for (int x = 0; x < inner_size; x++) {
                         int src_x = static_cast<int>(x * x_ratio);
-                        final_image[y * final_size + x] = (qr_data[src_row_idx + src_x] & 1) ? fg : bg;
+                        int dst_y = margin + y;
+                        int dst_x = margin + x;
+                        final_image[dst_y * final_size + dst_x] = (qr_data[src_row_idx + src_x] & 1) ? fg : bg;
                     }
                 }
             }
@@ -538,20 +613,32 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
         } else {
             // Full RGB for non-grayscale colors
             std::vector<unsigned char> final_image(final_size * final_size * 3);
+            
+            for (int i = 0; i < final_size * final_size; i++) {
+                final_image[i * 3] = options.background.r;
+                final_image[i * 3 + 1] = options.background.g;
+                final_image[i * 3 + 2] = options.background.b;
+            }
 
-            int scale = final_size / qr_size;
-            if (scale * qr_size == final_size) {
+            int scale = inner_size / qr_size;
+            if (scale * qr_size == inner_size) {
                 // Integer scaling
                 std::vector<unsigned char> scaled_row(final_size * 3);
 
                 for (int src_y = 0; src_y < qr_size; src_y++) {
+                    for (int i = 0; i < final_size; i++) {
+                        scaled_row[i * 3] = options.background.r;
+                        scaled_row[i * 3 + 1] = options.background.g;
+                        scaled_row[i * 3 + 2] = options.background.b;
+                    }
+
                     for (int src_x = 0; src_x < qr_size; src_x++) {
                         bool is_black = qr_data[src_y * qr_size + src_x] & 1;
                         unsigned char r = is_black ? options.foreground.r : options.background.r;
                         unsigned char g = is_black ? options.foreground.g : options.background.g;
                         unsigned char b = is_black ? options.foreground.b : options.background.b;
 
-                        int dst_x_start = src_x * scale;
+                        int dst_x_start = margin + src_x * scale;
                         for (int dx = 0; dx < scale; dx++) {
                             int idx = (dst_x_start + dx) * 3;
                             scaled_row[idx] = r;
@@ -560,7 +647,7 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
                         }
                     }
 
-                    int dst_y_start = src_y * scale;
+                    int dst_y_start = margin + src_y * scale;
                     unsigned char* dst_ptr = &final_image[dst_y_start * final_size * 3];
                     std::memcpy(dst_ptr, scaled_row.data(), final_size * 3);
                     for (int dy = 1; dy < scale; dy++) {
@@ -569,16 +656,18 @@ bool generate(const std::string& data, const std::string& output_path, const QRO
                 }
             } else {
                 // Non-integer scaling
-                double x_ratio = static_cast<double>(qr_size) / final_size;
-                double y_ratio = static_cast<double>(qr_size) / final_size;
+                double x_ratio = static_cast<double>(qr_size) / inner_size;
+                double y_ratio = static_cast<double>(qr_size) / inner_size;
 
-                for (int y = 0; y < final_size; y++) {
+                for (int y = 0; y < inner_size; y++) {
                     int src_y = static_cast<int>(y * y_ratio);
                     int src_row_idx = src_y * qr_size;
-                    for (int x = 0; x < final_size; x++) {
+                    for (int x = 0; x < inner_size; x++) {
                         int src_x = static_cast<int>(x * x_ratio);
                         bool is_black = qr_data[src_row_idx + src_x] & 1;
-                        int idx = (y * final_size + x) * 3;
+                        int dst_y = margin + y;
+                        int dst_x = margin + x;
+                        int idx = (dst_y * final_size + dst_x) * 3;
                         final_image[idx] = is_black ? options.foreground.r : options.background.r;
                         final_image[idx + 1] = is_black ? options.foreground.g : options.background.g;
                         final_image[idx + 2] = is_black ? options.foreground.b : options.background.b;
@@ -671,6 +760,8 @@ int fastqr_generate(const char* data, const char* output_path, const QROptions* 
             options.format = c_options->format;
         }
         options.quality = c_options->quality;
+        options.margin = c_options->margin;
+        options.margin_modules = c_options->margin_modules;
     }
 
     bool result = fastqr::generate(data, output_path, options);

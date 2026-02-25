@@ -56,6 +56,8 @@ Generate a QR code and save to file.
 | `'logoSize'` | int | `20` | Logo size as percentage (1-50) |
 | `'quality'` | int | `95` | Image quality (1-100) |
 | `'format'` | string | `'png'` | Output format: 'png', 'jpg', 'webp' |
+| `'margin'` | int | `0` | Margin (quiet zone) in pixels (absolute) |
+| `'marginModules'` | int | `4` | Margin in modules (relative, ISO standard) |
 
 ### `FastQR::generateBatch($dataArray, $outputDir, $options = [])`
 
@@ -148,7 +150,36 @@ FastQR::generate('こんにちは日本', 'japanese.png');
 FastQR::generate('Hello 👋 World 🌍', 'emoji.png');
 ```
 
-### 7. Different Formats
+### 7. QR Code with Margin (Quiet Zone)
+
+```php
+// ISO standard (4 modules) - RECOMMENDED
+FastQR::generate('https://example.com', 'qr_iso.png', [
+    'size' => 500,
+    'marginModules' => 4
+]);
+
+// Absolute pixels
+FastQR::generate('https://example.com', 'qr_margin.png', [
+    'size' => 400,
+    'margin' => 20
+]);
+
+// Margin with custom background color
+FastQR::generate('Data', 'qr_margin_bg.png', [
+    'size' => 400,
+    'marginModules' => 4,
+    'background' => [255, 220, 220]
+]);
+
+// Disable margin (for max performance)
+FastQR::generate('Data', 'qr_no_margin.png', [
+    'size' => 500,
+    'marginModules' => 0
+]);
+```
+
+### 8. Different Formats
 
 ```php
 // PNG (default)

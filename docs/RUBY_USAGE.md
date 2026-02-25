@@ -60,6 +60,8 @@ Generate a QR code and save to file.
 | `:logo_size` | Integer | `20` | Logo size as percentage (1-50) |
 | `:quality` | Integer | `95` | Image quality (1-100) |
 | `:format` | String | `'png'` | Output format: 'png', 'jpg', 'webp' |
+| `:margin` | Integer | `0` | Margin (quiet zone) in pixels (absolute) |
+| `:margin_modules` | Integer | `4` | Margin in modules (relative, ISO standard) |
 
 ### `FastQR.generate_batch(data_array, output_dir, options = {})`
 
@@ -158,7 +160,36 @@ FastQR.generate("こんにちは日本", "japanese.png")
 FastQR.generate("Hello 👋 World 🌍", "emoji.png")
 ```
 
-### 8. Different Formats
+### 8. QR Code with Margin (Quiet Zone)
+
+```ruby
+# ISO standard (4 modules) - RECOMMENDED
+FastQR.generate("https://example.com", "qr_iso.png",
+  size: 500,
+  margin_modules: 4
+)
+
+# Absolute pixels
+FastQR.generate("https://example.com", "qr_margin.png",
+  size: 400,
+  margin: 20
+)
+
+# Margin with custom background color
+FastQR.generate("Data", "qr_margin_bg.png",
+  size: 400,
+  margin_modules: 4,
+  background: [255, 220, 220]
+)
+
+# Disable margin (for max performance)
+FastQR.generate("Data", "qr_no_margin.png",
+  size: 500,
+  margin_modules: 0
+)
+```
+
+### 9. Different Formats
 
 ```ruby
 # PNG (default)
@@ -171,7 +202,7 @@ FastQR.generate("Data", "output.jpg", quality: 90)
 FastQR.generate("Data", "output.webp", quality: 85)
 ```
 
-### 9. Batch Generation (7x faster!)
+### 10. Batch Generation (7x faster!)
 
 ```ruby
 # Generate 1000 QR codes

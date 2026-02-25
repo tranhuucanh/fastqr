@@ -259,6 +259,9 @@ fastqr "Hello World" output.png
 # With custom colors
 fastqr -s 500 -f 255,0,0 -b 255,255,200 "Red QR" red.png
 
+# With margin (ISO standard: 4 modules)
+fastqr -s 400 --margin-modules 4 "QR with margin" margin.png
+
 # With logo
 fastqr -l logo.png "QR with Logo" branded.png
 
@@ -384,6 +387,8 @@ fastqr::generateBatch(urls, "output/", options);
 | `logoSize` | int | 20 | Logo size as percentage (1-50) |
 | `quality` | int | 95 | Image quality for lossy formats (1-100) |
 | `format` | string | 'png' | Output format: png, jpg, webp |
+| `margin` | int | 0 | Margin (quiet zone) in pixels (absolute) |
+| `marginModules` | int | 4 | Margin in modules (relative, ISO standard) |
 
 ### Error Correction Levels
 

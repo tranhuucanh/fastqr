@@ -101,6 +101,19 @@ static fastqr::QROptions hash_to_options(VALUE opts) {
         options.format = StringValueCStr(val);
     }
 
+    // Margin
+    val = rb_hash_aref(opts, ID2SYM(rb_intern("margin")));
+    if (!NIL_P(val)) {
+        options.margin = NUM2INT(val);
+        options.margin_modules = 0;  // Disable margin_modules when using absolute margin
+    }
+
+    // Margin modules
+    val = rb_hash_aref(opts, ID2SYM(rb_intern("margin_modules")));
+    if (!NIL_P(val)) {
+        options.margin_modules = NUM2INT(val);
+    }
+
     return options;
 }
 

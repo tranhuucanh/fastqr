@@ -73,6 +73,8 @@ fastqr::QROptions c_to_cpp_options(const QROptions_C* c_opts) {
             opts.format = c_opts->format;
         }
         opts.quality = c_opts->quality;
+        opts.margin = c_opts->margin;
+        opts.margin_modules = c_opts->margin_modules;
     }
 
     return opts;

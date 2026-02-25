@@ -55,6 +55,8 @@ Generate a QR code and save to file.
 | `logoSize` | number | `20` | Logo size as percentage (1-50) |
 | `quality` | number | `95` | Image quality (1-100) |
 | `format` | string | `'png'` | Output format: 'png', 'jpg', 'webp' |
+| `margin` | number | `0` | Margin (quiet zone) in pixels (absolute) |
+| `marginModules` | number | `4` | Margin in modules (relative, ISO standard) |
 
 ### `fastqr.generateBatch(dataArray, outputDir, options)`
 
@@ -165,7 +167,36 @@ fastqr.generate('こんにちは日本', 'japanese.png');
 fastqr.generate('Hello 👋 World 🌍', 'emoji.png');
 ```
 
-### 8. Batch Generation (7x faster!)
+### 8. QR Code with Margin (Quiet Zone)
+
+```javascript
+// ISO standard (4 modules) - RECOMMENDED
+fastqr.generate('https://example.com', 'qr_iso.png', {
+  size: 500,
+  marginModules: 4
+});
+
+// Absolute pixels
+fastqr.generate('https://example.com', 'qr_margin.png', {
+  size: 400,
+  margin: 20
+});
+
+// Margin with custom background color
+fastqr.generate('Data', 'qr_margin_bg.png', {
+  size: 400,
+  marginModules: 4,
+  background: [255, 220, 220]
+});
+
+// Disable margin (for max performance)
+fastqr.generate('Data', 'qr_no_margin.png', {
+  size: 500,
+  marginModules: 0
+});
+```
+
+### 9. Batch Generation (7x faster!)
 
 ```javascript
 // Generate 1000 QR codes
@@ -185,7 +216,7 @@ console.log(`Generated ${result.success} QR codes`);
 // Creates: qr_codes/1.png, qr_codes/2.png, ..., qr_codes/1000.png
 ```
 
-### 7. Different Formats
+### 10. Different Formats
 
 ```javascript
 // PNG (default)

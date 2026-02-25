@@ -142,6 +142,8 @@ fastqr -s 2000 -q 100 -e H "SKU-12345" product_qr.png
 | **Logo** | `-l logo.png` | `logo: 'logo.png'` | `{logo: 'logo.png'}` | `['logo' => 'logo.png']` | - |
 | **Logo Size** | `-p 25` | `logo_size: 25` | `{logoSize: 25}` | `['logoSize' => 25]` | 20 |
 | **Quality** | `-q 95` | `quality: 95` | `{quality: 95}` | `['quality' => 95]` | 95 |
+| **Margin** | `-m 20` | `margin: 20` | `{margin: 20}` | `['margin' => 20]` | 0 |
+| **Margin Modules** | `--margin-modules 4` | `margin_modules: 4` | `{marginModules: 4}` | `['marginModules' => 4]` | 4 |
 
 ## Getting Help
 
