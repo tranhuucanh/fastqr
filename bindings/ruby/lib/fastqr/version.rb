@@ -19,6 +19,6 @@
 # Homepage: https://github.com/tranhuucanh/fastqr
 
 module FastQR
-  VERSION = "1.0.27"
+  VERSION = "1.0.28"
 end
 
