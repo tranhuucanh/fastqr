@@ -183,6 +183,13 @@ class FastQR
             $args[] = '-q ' . (int)$options['quality'];
         }
 
+        // Margin options (margin_modules takes priority over margin)
+        if (isset($options['margin'])) {
+            $args[] = '-m ' . (int)$options['margin'];
+        } elseif (isset($options['marginModules'])) {
+            $args[] = '--margin-modules ' . (int)$options['marginModules'];
+        }
+
         // Execute command
         $cmd = implode(' ', $args) . ' 2>&1';
         exec($cmd, $output, $returnCode);
@@ -286,6 +293,13 @@ class FastQR
             }
             if (isset($options['quality'])) {
                 $args[] = '-q ' . (int)$options['quality'];
+            }
+
+            // Margin options (margin_modules takes priority over margin)
+            if (isset($options['margin'])) {
+                $args[] = '-m ' . (int)$options['margin'];
+            } elseif (isset($options['marginModules'])) {
+                $args[] = '--margin-modules ' . (int)$options['marginModules'];
             }
 
             $cmd = implode(' ', $args) . ' 2>&1';

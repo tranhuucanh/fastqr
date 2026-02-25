@@ -84,6 +84,13 @@ module FastQR
     args += ['-l', options[:logo]] if options[:logo]
     args += ['-p', options[:logo_size].to_s] if options[:logo_size]
     args += ['-q', options[:quality].to_s] if options[:quality]
+    
+    # Margin options (margin_modules takes priority over margin)
+    if options[:margin]
+      args += ['-m', options[:margin].to_s]
+    elsif options[:margin_modules]
+      args += ['--margin-modules', options[:margin_modules].to_s]
+    end
 
     # Execute CLI binary
     result = system(cli_path, *args, out: File::NULL, err: File::NULL)
@@ -131,6 +138,13 @@ module FastQR
       cmd_parts += ['-l', options[:logo]] if options[:logo]
       cmd_parts += ['-p', options[:logo_size].to_s] if options[:logo_size]
       cmd_parts += ['-q', options[:quality].to_s] if options[:quality]
+      
+      # Margin options (margin_modules takes priority over margin)
+      if options[:margin]
+        cmd_parts += ['-m', options[:margin].to_s]
+      elsif options[:margin_modules]
+        cmd_parts += ['--margin-modules', options[:margin_modules].to_s]
+      end
 
       result = system(*cmd_parts, out: File::NULL, err: File::NULL)
       raise Error, "Batch generation failed" unless result
